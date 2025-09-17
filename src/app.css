@@ -1,0 +1,137 @@
+@import "tailwindcss";
+
+@theme {
+	/* color */
+	--color-base: #7fbb1b;
+	--color-action: #1b4ba8;
+	--color-badge: #10de39;
+	--color-border: #d5d5d5;
+	--color-error: #f5275e;
+	--color-background: #f6f6f6;
+	--color-white: #fff;
+	--color-text: #5b5b5b;
+
+	/* shadow */
+	--shadow-center: 1px 2px 5px 0px rgba(0, 0, 0, 0.5);
+
+	--font-peyda: "peyda";
+	--font-peyda-bold: "peyda-bold";
+}
+
+.shadow-footer {
+	box-shadow: 0px 3px 5px 0px rgba(0, 0, 0, 0.3);
+}
+
+* {
+	direction: inherit;
+	cursor: inherit;
+	object-fit: contain;
+	box-sizing: border-box;
+}
+
+*:disabled {
+	opacity: 0.7;
+	cursor: not-allowed;
+}
+
+body {
+	direction: rtl;
+	fill: var(--color-base);
+	color: var(--color-base);
+
+	/*  */
+	width: 100%;
+	height: max-content;
+	min-height: 100vh;
+	display: flex;
+	flex-direction: column;
+	overflow-x: hidden;
+	align-items: center;
+	font-family: peyda;
+}
+
+.bg-tile {
+	background-image: url("https://dastan.storage.iran.liara.space/aram/public/bg-tile.webp");
+	background-repeat: repeat;
+	/* background-color: rgba(0, 255, 42, 0.1); Yellow with 30% opacity */
+	/* background-blend-mode: overlay; */
+}
+
+label,
+a,
+button,
+.clicker {
+	@apply hover:opacity-90 active:opacity-70 cursor-pointer select-none;
+}
+
+video:fullscreen {
+	border: none !important;
+	border-radius: 0 !important;
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+	background-color: transparent !important;
+	-webkit-box-shadow: 0 0 0 30px white inset !important; /* Optional: Set inner shadow to match background */
+}
+
+textarea,
+input {
+	border: none;
+	outline: none !important; /* Removes the default outline */
+}
+
+.bg-opacity-0 {
+	background-color: rgba(0, 0, 0, 0);
+}
+
+.bg-opacity-70 {
+	background-color: rgba(0, 0, 0, 0.7);
+}
+
+@font-face {
+	font-family: "peyda";
+	src: url("/fonts/Peyda-Regular.woff") format("woff");
+	font-weight: 400;
+	font-style: normal;
+}
+
+@font-face {
+	font-family: "peyda";
+	src: url("/fonts/Peyda-Bold.woff") format("woff");
+	font-weight: 700;
+	font-style: normal;
+}
+
+@font-face {
+	font-family: "peyda-bold";
+	src: url("/fonts/Peyda-Bold.woff") format("woff");
+	font-style: normal;
+}
+
+/*  remove scrollbar */
+*::-webkit-scrollbar {
+	display: none;
+}
+
+* {
+	-ms-overflow-style: none; /* IE and Edge */
+	scrollbar-width: none; /* Firefox */
+}
+
+.bg-gradient-red {
+	background: #e10330;
+	background: linear-gradient(0deg, rgba(217, 3, 46, 1) 0%, rgba(164, 10, 36, 1) 85%, rgba(225, 3, 48, 1) 100%);
+}
+
+.bg-gradient-yellow {
+	background: #fbffdc;
+	background: radial-gradient(circle, rgba(251, 255, 220, 1) 0%, rgba(255, 226, 82, 1) 100%);
+}
+
+.bg-gradient-green {
+	background: #00610b;
+	background: linear-gradient(0deg, rgba(0, 97, 11, 1) 0%, rgba(20, 171, 35, 1) 100%);
+}
