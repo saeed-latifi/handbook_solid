@@ -7,6 +7,7 @@ interface SimpleDomainContextValue {
 	getSimpleDomain: <T, X>(domain: IDomainSimpleNames) => IRecordData<T, X>;
 	updateSimpleDomain: <T, X>({ domain, fetchState, data }: { domain: IDomainSimpleNames; data?: IResponse<T, X>; fetchState?: Partial<IFetchState> }) => void;
 	updateSimpleDomainFetchState: ({ domain, fetchState }: { domain: IDomainSimpleNames; fetchState: Partial<IFetchState> }) => void;
+	updateSimpleData: <T>({ domain, data }: { domain: IDomainSimpleNames; data: Partial<T> }) => void;
 }
 
 const initFetchState: IFetchState = {
@@ -43,11 +44,17 @@ export function SimpleDomainProvider(props: { children: any }) {
 		else setSimpleDomains(domain, "fetchState", (prev) => ({ ...prev, ...fetchState }));
 	}
 
+	function updateSimpleData<T>({ domain, data }: { domain: IDomainSimpleNames; data: Partial<T> }) {
+		if (!simpleDomains[domain]?.data) return;
+		setSimpleDomains(domain, "data", "data", data);
+	}
+
 	const contextValue: SimpleDomainContextValue = {
 		simpleDomains,
 		getSimpleDomain,
 		updateSimpleDomain,
 		updateSimpleDomainFetchState,
+		updateSimpleData,
 	};
 
 	return <SimpleDomainContext.Provider value={contextValue}>{props.children}</SimpleDomainContext.Provider>;

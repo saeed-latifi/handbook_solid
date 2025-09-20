@@ -13,9 +13,6 @@ export function LoginPage() {
 		event.preventDefault();
 
 		const res = data();
-
-		console.log(res);
-
 		if (res) await onLogin(res);
 	}
 
@@ -26,7 +23,6 @@ export function LoginPage() {
 			</div>
 			<div class="w-full flex flex-col items-center text-center py-4 gap-1">
 				<p class="font-peyda-bold text-lg">آرامیار</p>
-				{/* <p>سامانه رشد خوش نظر</p> */}
 			</div>
 
 			<Input
@@ -35,7 +31,7 @@ export function LoginPage() {
 				name="phone"
 				placeholder="شماره همراه"
 				value={data()?.phone || ""}
-				onchange={(e) => onChange({ phone: e.target.value })}
+				oninput={(e) => onChange({ phone: e.target.value })}
 				errors={response()?.validations?.phone}
 			/>
 			<Input
@@ -45,7 +41,7 @@ export function LoginPage() {
 				type="password"
 				placeholder="رمز ورود"
 				value={data()?.password || ""}
-				onchange={(e) => onChange({ password: e.target.value })}
+				oninput={(e) => onChange({ password: e.target.value })}
 				errors={response()?.validations?.password}
 			/>
 

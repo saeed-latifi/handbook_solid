@@ -1,13 +1,13 @@
 import { createEffect, createSignal } from "solid-js";
 import { For, Match, Switch } from "solid-js/web";
 import { useDataList } from "~/hooks/useDataList";
-import { ILesson, IResponse, ResponseState } from "~/types/response.type";
+import { ILessonSimple, IResponse, ResponseState } from "~/types/response.type";
 import { sleep } from "~/utils/sleep";
 
 export function ComponentListError() {
 	const [allowed, setAllowed] = createSignal(false);
 
-	const { isLoading, isValidating, isReady, error, data, refetch } = useDataList<ILesson, undefined>({
+	const { isLoading, isValidating, isReady, error, data, refetch } = useDataList<ILessonSimple, undefined>({
 		domain: "some",
 		fetcher: async () => {
 			console.log("A start");
@@ -15,7 +15,7 @@ export function ComponentListError() {
 			await sleep(3000);
 			if (!allowed()) throw new Error("Error test, try again and must fix!");
 
-			const res: IResponse<ILesson[], undefined> = {
+			const res: IResponse<ILessonSimple[], undefined> = {
 				responseState: ResponseState.Success,
 				data: [
 					{ id: 1, title: "a1" },

@@ -67,10 +67,10 @@ export function useDataSimple<T = unknown, X = unknown>({ domain, fetcher, isRea
 		}
 	}
 
-	async function mutate(updater: ((currentResponse?: Partial<IResponse<T, X>>) => Partial<IResponse<T, X>> | Promise<Partial<IResponse<T, X>>> | undefined) | Partial<IResponse<T, X>> | undefined) {
+	async function mutateResponse(updater: ((currentResponse?: Partial<IResponse<T, X>>) => Partial<IResponse<T, X>> | Promise<Partial<IResponse<T, X>>> | undefined) | Partial<IResponse<T, X>> | undefined) {
 		try {
 			if (!updater || !canAct()) return;
-			console.log("mutate");
+			console.log("mutate response");
 
 			const currentResponse = context?.getSimpleDomain<T, X>(domain)?.data;
 
@@ -87,6 +87,14 @@ export function useDataSimple<T = unknown, X = unknown>({ domain, fetcher, isRea
 		}
 	}
 
+	// TODO Wrapper
+	async function mutateValue<T, X>(newData: Partial<T>) {
+		const base = simpleData().data;
+		if (!base) return;
+
+		context?.updateSimpleData<T>({ domain, data: { ...base.data, ...newData } });
+	}
+
 	return {
 		data: () => simpleData()?.data?.data,
 		response: () => simpleData()?.data,
@@ -98,6 +106,7 @@ export function useDataSimple<T = unknown, X = unknown>({ domain, fetcher, isRea
 
 		isReady: isReadyState,
 		refetch: executeFetch,
-		mutate,
+		mutateResponse,
+		mutateValue,
 	};
 }

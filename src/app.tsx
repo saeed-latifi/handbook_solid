@@ -4,10 +4,9 @@ import { FileRoutes } from "@solidjs/start/router";
 import { Suspense } from "solid-js";
 import { DomainProvider } from "./context/domainContext";
 import { SimpleDomainProvider } from "./context/simpleContext";
-import { ClientWrapper } from "./layout/ClientWrapper";
 import { ModalInit, ModalProvider } from "./context/modal.context";
-import { AuthChecker } from "./layout/AuthChecker";
 import { Toaster } from "solid-toast";
+import { AuthChecker } from "./layout/AuthChecker";
 
 export default function App() {
 	return (
@@ -18,7 +17,7 @@ export default function App() {
 						<SimpleDomainProvider>
 							<ModalProvider>
 								<Suspense>
-									<ClientWrapper>{props.children}</ClientWrapper>
+									<AuthChecker>{props.children}</AuthChecker>
 								</Suspense>
 								<Toaster position="top-center" />
 								<ModalInit />

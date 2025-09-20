@@ -1,4 +1,4 @@
-import { IAuthor } from "./author.type.ts";
+import { IAuthor } from "./author.type";
 
 export interface IOnlineClass {
 	id: number;

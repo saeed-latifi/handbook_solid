@@ -1,10 +1,19 @@
 import { Match, Switch } from "solid-js";
 import { useDataSimple } from "~/hooks/useDataSimple";
-import { IResponse, IUserSimple } from "~/types/response.type";
+import { IResponse, IUserSimple, ResponseState } from "~/types/response.type";
 import { sleep } from "~/utils/sleep";
 
 export function ComponentSimple() {
-	const { isLoading, isValidating, isReady, error, data, refetch, mutate, response } = useDataSimple<IUserSimple, undefined>({
+	const {
+		isLoading,
+		isValidating,
+		isReady,
+		error,
+		data,
+		refetch,
+		mutateResponse: mutate,
+		response,
+	} = useDataSimple<IUserSimple, undefined>({
 		domain: "profile",
 		fetcher: async () => {
 			await sleep(3000);

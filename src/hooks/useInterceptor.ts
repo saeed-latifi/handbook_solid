@@ -1,7 +1,7 @@
 import { onMount } from "solid-js";
 import { useNavigate } from "@solidjs/router";
 import { toast } from "solid-toast"; // Using solid-toast instead of react-hot-toast
-import { http } from "../components/rest";
+import { http } from "../components/http";
 import { IResponse } from "../types/response.type";
 
 export function useInterceptor() {
