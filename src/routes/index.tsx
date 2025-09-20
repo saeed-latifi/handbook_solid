@@ -10,9 +10,16 @@ import { ComponentRecordTwo } from "~/components/test/ComponentRecordTwo";
 import { Input } from "~/components/form/Input";
 import { useAccount } from "~/hooks/useAccount";
 import { IconLock } from "~/components/icons/IconLock";
+import { onMount } from "solid-js";
 
 export default function Home() {
 	const { response, data, onChange } = useAccount();
+
+	onMount(() => {
+		console.log("iii", import.meta.env.VITE_API_URL);
+		console.log("iii", import.meta.env.VITE_PAGE_SIZE);
+	});
+
 	return (
 		<div class="w-full flex flex-col gap-4 p-4">
 			<Input

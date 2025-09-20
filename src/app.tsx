@@ -9,6 +9,8 @@ import { Toaster } from "solid-toast";
 import { AuthChecker } from "./layout/AuthChecker";
 
 export default function App() {
+	console.log("ooo", process.env.TEST_PRIVATE_ENV);
+
 	return (
 		<Router
 			root={(props) => (
