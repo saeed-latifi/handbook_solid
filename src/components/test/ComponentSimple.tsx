@@ -4,17 +4,8 @@ import { IResponse, IUserSimple, ResponseState } from "~/types/response.type";
 import { sleep } from "~/utils/sleep";
 
 export function ComponentSimple() {
-	const {
-		isLoading,
-		isValidating,
-		isReady,
-		error,
-		data,
-		refetch,
-		mutateResponse: mutate,
-		response,
-	} = useDataSimple<IUserSimple, undefined>({
-		domain: "profile",
+	const { isLoading, isValidating, isReady, error, data, refetch, mutateResponse, response } = useDataSimple<IUserSimple, undefined>({
+		domain: "settings",
 		fetcher: async () => {
 			await sleep(3000);
 			// throw new Error("errrrrr");
@@ -29,20 +20,20 @@ export function ComponentSimple() {
 	});
 
 	function onA() {
-		mutate({
+		mutateResponse({
 			data: { name: "A", id: 8 },
 			validations: undefined, // Clear validations
 		});
 	}
 	function onB() {
-		mutate((current) => ({
+		mutateResponse((current) => ({
 			...current,
 			data: { id: 8, name: "B" },
 			responseState: ResponseState.Success,
 		}));
 	}
 	function onC() {
-		mutate(async (current) => {
+		mutateResponse(async (current) => {
 			const freshData = await sleep(3000);
 			return {
 				...current,

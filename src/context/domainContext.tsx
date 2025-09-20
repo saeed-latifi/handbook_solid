@@ -1,15 +1,18 @@
 import { createContext } from "solid-js";
 import { createStore } from "solid-js/store";
 import { IDomainNames, IResponse, IFetchState, IListData, IRecordData, IDomainStore, ResponseState } from "~/types/response.type";
+
 interface DomainContextValue {
 	domains: { [K in IDomainNames]?: IDomainStore<unknown, unknown> };
 	getDomain: <T, X>(domain: IDomainNames) => IDomainStore<T, X>;
 	getList: <T, X>(domain: IDomainNames, key: string) => IListData<T, X> | undefined;
 	getRecord: <T, X>(domain: IDomainNames, id: string | number) => IRecordData<T, X> | undefined;
-	updateList: <T, X>(args: { domain: IDomainNames; key: string; data: IResponse<T[], X>; fetchState: Partial<IFetchState> }) => void;
-	updateListFetchState: (args: { domain: IDomainNames; key: string; fetchState: Partial<IFetchState> }) => void;
-	updateRecord: <T, X>(args: { domain: IDomainNames; id: string | number; data: IResponse<T, X>; fetchState: Partial<IFetchState> }) => void;
+	updateListResponse: <T, X>(args: { domain: IDomainNames; key: string; data: IResponse<T[], X>; fetchState: Partial<IFetchState> }) => void;
+	updateListState: (args: { domain: IDomainNames; key: string; fetchState: Partial<IFetchState> }) => void;
+	updateListValue: <T>({ domain, key, data }: { domain: IDomainNames; key: string; data: T[] }) => void;
+	updateRecordResponse: <T, X>(args: { domain: IDomainNames; id: string | number; data: IResponse<T, X>; fetchState: Partial<IFetchState> }) => void;
 	updateRecordFetchState: (args: { domain: IDomainNames; id: string | number; fetchState: Partial<IFetchState> }) => void;
+	updateRecordValue: <T>(args: { domain: IDomainNames; data: Partial<T>; id: string | number }) => void;
 }
 
 type AllDomains = { [K in IDomainNames]?: IDomainStore<unknown, unknown> };
@@ -53,18 +56,24 @@ export function DomainProvider(props: { children: any }) {
 		return domains[name]?.records[id] as IRecordData<T, X> | undefined;
 	}
 
-	function updateList<T, X>({ domain, key, data, fetchState }: { domain: IDomainNames; key: string; data: IResponse<T[], X>; fetchState: Partial<IFetchState> }) {
+	function updateListResponse<T, X>({ domain, key, data, fetchState }: { domain: IDomainNames; key: string; data: IResponse<T[], X>; fetchState: Partial<IFetchState> }) {
 		if (!domains[domain]) onDomain(domain, { ...createEmptyDomain<T, X>(domain), lists: { [key]: listHandler({ data, fetchState }) } });
 		else onDomain(domain, "lists", key, listHandler({ data, fetchState }));
 	}
 
-	function updateListFetchState<T, X>({ domain, key, fetchState }: { domain: IDomainNames; key: string; fetchState: Partial<IFetchState> }) {
+	function updateListState<T, X>({ domain, key, fetchState }: { domain: IDomainNames; key: string; fetchState: Partial<IFetchState> }) {
 		if (!domains[domain]) onDomain(domain, { ...createEmptyDomain<T, X>(domain), lists: { [key]: listHandler({ data: { responseState: ResponseState.Success }, fetchState, initialized: false }) } });
 		else if (!domains[domain].lists[key]) onDomain(domain, "lists", key, listHandler({ data: { responseState: ResponseState.Success }, fetchState, initialized: false }));
 		else onDomain(domain, "lists", key, "fetchState", (prev) => ({ ...prev, ...fetchState }));
 	}
 
-	function updateRecord<T, X>({ data, domain, fetchState, id }: { domain: IDomainNames; id: string | number; data: IResponse<T, X>; fetchState: Partial<IFetchState> }) {
+	function updateListValue<T>({ domain, key, data }: { domain: IDomainNames; key: string; data: T[] }) {
+		if (!domains[domain]?.lists[key]?.data?.data) return;
+
+		onDomain(domain, "lists", key, "data", "data", data);
+	}
+
+	function updateRecordResponse<T, X>({ data, domain, fetchState, id }: { domain: IDomainNames; id: string | number; data: IResponse<T, X>; fetchState: Partial<IFetchState> }) {
 		if (!domains[domain]) onDomain(domain, { ...createEmptyDomain<T, X>(domain), records: { [id]: recordHandler({ data, fetchState }) } });
 		else onDomain(domain, "records", id, recordHandler({ data, fetchState }));
 	}
@@ -75,15 +84,26 @@ export function DomainProvider(props: { children: any }) {
 		else onDomain(domain, "records", id, "fetchState", (prev) => ({ ...prev, ...fetchState }));
 	}
 
+	function updateRecordValue<T>({ domain, data, id }: { domain: IDomainNames; data: Partial<T>; id: string | number }) {
+		if (!domains[domain]?.records[id]?.data?.data) return;
+
+		onDomain(domain, "records", id, "data", "data", (prev: T) => ({
+			...prev,
+			...data,
+		}));
+	}
+
 	const contextValue: DomainContextValue = {
 		domains,
 		getDomain,
 		getList,
 		getRecord,
-		updateList,
-		updateListFetchState,
-		updateRecord,
+		updateListResponse,
+		updateListState,
+		updateListValue,
+		updateRecordResponse,
 		updateRecordFetchState,
+		updateRecordValue,
 	};
 
 	return <DomainContext.Provider value={contextValue}>{props.children}</DomainContext.Provider>;

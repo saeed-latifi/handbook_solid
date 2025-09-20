@@ -5,7 +5,7 @@ import { sleep } from "~/utils/sleep";
 
 export function ComponentRecordTwo() {
 	const id = 2;
-	const { data, isLoading, refetch, error, isValidating, isReady, mutate } = useDataRecord<IUserSimple, undefined>({
+	const { data, isLoading, refetch, error, isValidating, isReady, mutateResponse } = useDataRecord<IUserSimple, undefined>({
 		domain: "user",
 		id,
 		fetcher: async (_id) => {
@@ -23,14 +23,14 @@ export function ComponentRecordTwo() {
 	});
 
 	function immediate() {
-		mutate((current) => ({
+		mutateResponse((current) => ({
 			...current,
 			data: { id: id, name: "immediate two" },
 			responseState: ResponseState.Success,
 		}));
 	}
 	function withDelay() {
-		mutate(async (current) => {
+		mutateResponse(async (current) => {
 			const freshData = await sleep(3000);
 			return {
 				...current,

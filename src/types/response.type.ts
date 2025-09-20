@@ -26,7 +26,7 @@ export interface IResponse<T = undefined, X = undefined> {
 }
 
 export type IDomainNames = "user" | "lesson" | "some";
-export type IDomainSimpleNames = "settings" | "profile";
+export type IDomainSimpleNames = "settings" | "account";
 
 export interface IFetchState {
 	isLoading: boolean;

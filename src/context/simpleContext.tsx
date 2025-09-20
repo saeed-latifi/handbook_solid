@@ -4,10 +4,10 @@ import { createStore } from "solid-js/store";
 import { IDomainSimpleNames, IResponse, IFetchState, IRecordData, ISimpleStore } from "~/types/response.type";
 interface SimpleDomainContextValue {
 	simpleDomains: ISimpleStore<unknown, unknown>;
-	getSimpleDomain: <T, X>(domain: IDomainSimpleNames) => IRecordData<T, X>;
-	updateSimpleDomain: <T, X>({ domain, fetchState, data }: { domain: IDomainSimpleNames; data?: IResponse<T, X>; fetchState?: Partial<IFetchState> }) => void;
-	updateSimpleDomainFetchState: ({ domain, fetchState }: { domain: IDomainSimpleNames; fetchState: Partial<IFetchState> }) => void;
-	updateSimpleData: <T>({ domain, data }: { domain: IDomainSimpleNames; data: Partial<T> }) => void;
+	get: <T, X>(domain: IDomainSimpleNames) => IRecordData<T, X>;
+	updateResponse: <T, X>(args: { domain: IDomainSimpleNames; data?: IResponse<T, X>; fetchState?: Partial<IFetchState> }) => void;
+	updateState: (args: { domain: IDomainSimpleNames; fetchState: Partial<IFetchState> }) => void;
+	updateValue: <T>(args: { domain: IDomainSimpleNames; data: Partial<T> }) => void;
 }
 
 const initFetchState: IFetchState = {
@@ -26,7 +26,7 @@ const SimpleDomainContext = createContext<SimpleDomainContextValue>();
 export function SimpleDomainProvider(props: { children: any }) {
 	const [simpleDomains, setSimpleDomains] = createStore<ISimpleStore<unknown, unknown>>({});
 
-	function getSimpleDomain<T, X>(domain: IDomainSimpleNames): IRecordData<T, X> {
+	function get<T, X>(domain: IDomainSimpleNames): IRecordData<T, X> {
 		const exist = simpleDomains[domain] as IRecordData<T, X>;
 		if (exist) return exist;
 
@@ -35,26 +35,30 @@ export function SimpleDomainProvider(props: { children: any }) {
 		return defaultDomain;
 	}
 
-	function updateSimpleDomain<T, X>({ data, domain, fetchState }: { domain: IDomainSimpleNames; data?: IResponse<T, X>; fetchState?: Partial<IFetchState> }) {
+	function updateResponse<T, X>({ data, domain, fetchState }: { domain: IDomainSimpleNames; data?: IResponse<T, X>; fetchState?: Partial<IFetchState> }) {
 		setSimpleDomains(domain, recordHandler({ data, fetchState }));
 	}
 
-	function updateSimpleDomainFetchState({ domain, fetchState }: { domain: IDomainSimpleNames; fetchState: Partial<IFetchState> }) {
+	function updateState({ domain, fetchState }: { domain: IDomainSimpleNames; fetchState: Partial<IFetchState> }) {
 		if (!simpleDomains[domain]) setSimpleDomains(domain, recordHandler({ fetchState: { ...initFetchState, ...fetchState } }));
 		else setSimpleDomains(domain, "fetchState", (prev) => ({ ...prev, ...fetchState }));
 	}
 
-	function updateSimpleData<T>({ domain, data }: { domain: IDomainSimpleNames; data: Partial<T> }) {
+	function updateValue<T>({ domain, data }: { domain: IDomainSimpleNames; data: Partial<T> }) {
 		if (!simpleDomains[domain]?.data) return;
-		setSimpleDomains(domain, "data", "data", data);
+
+		setSimpleDomains(domain, "data", "data", (prev: T) => ({
+			...prev,
+			...data,
+		}));
 	}
 
 	const contextValue: SimpleDomainContextValue = {
 		simpleDomains,
-		getSimpleDomain,
-		updateSimpleDomain,
-		updateSimpleDomainFetchState,
-		updateSimpleData,
+		get,
+		updateResponse,
+		updateState,
+		updateValue,
 	};
 
 	return <SimpleDomainContext.Provider value={contextValue}>{props.children}</SimpleDomainContext.Provider>;

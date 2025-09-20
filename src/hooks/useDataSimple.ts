@@ -14,7 +14,7 @@ export function useDataSimple<T = unknown, X = unknown>({ domain, fetcher, isRea
 	const context = useContext(SimpleDomainContext);
 	if (!context) throw new Error("useSimple must be used within SimpleDomainProvider");
 
-	const simpleData = createMemo(() => context.getSimpleDomain<T, X>(domain));
+	const simpleData = createMemo(() => context.get<T, X>(domain));
 
 	const [isReadyState, setIsReadyState] = createSignal(typeof isReady === "boolean" ? isReady : isReady.constructor.name === "AsyncFunction" ? false : isReady());
 
@@ -45,20 +45,20 @@ export function useDataSimple<T = unknown, X = unknown>({ domain, fetcher, isRea
 		if (!canAct()) return;
 		console.log("fetch");
 
-		context?.updateSimpleDomainFetchState({ domain, fetchState: { isLoading: true, isValidating: false, error: undefined } });
+		context?.updateState({ domain, fetchState: { isLoading: true, isValidating: false, error: undefined } });
 
 		try {
 			const fetchPromise = fetcher();
 			onGoingFetch.set(domain, fetchPromise);
 
 			const response = await fetchPromise;
-			context?.updateSimpleDomain<T, X>({ domain, data: response, fetchState: { isLoading: false, isValidating: false, error: undefined } });
+			context?.updateResponse<T, X>({ domain, data: response, fetchState: { isLoading: false, isValidating: false, error: undefined } });
 
 			return response;
 		} catch (error) {
 			const errorResponse: IResponse<T, X> = { responseState: "ServerError" };
 
-			context?.updateSimpleDomain<T, X>({ domain, data: errorResponse, fetchState: { isLoading: false, isValidating: false, error: (error as Error).message } });
+			context?.updateResponse<T, X>({ domain, data: errorResponse, fetchState: { isLoading: false, isValidating: false, error: (error as Error).message } });
 
 			return errorResponse;
 			// throw error;
@@ -72,27 +72,25 @@ export function useDataSimple<T = unknown, X = unknown>({ domain, fetcher, isRea
 			if (!updater || !canAct()) return;
 			console.log("mutate response");
 
-			const currentResponse = context?.getSimpleDomain<T, X>(domain)?.data;
+			const currentResponse = context?.get<T, X>(domain)?.data;
 
 			if (typeof updater === "function") {
-				context?.updateSimpleDomainFetchState({ domain, fetchState: { isValidating: true } });
+				context?.updateState({ domain, fetchState: { isValidating: true } });
 				const res = await updater(currentResponse);
-				context?.updateSimpleDomainFetchState({ domain, fetchState: { isValidating: false } });
+				context?.updateState({ domain, fetchState: { isValidating: false } });
 				if (!res) return;
 
-				context?.updateSimpleDomain<T, X>({ domain, data: res, fetchState: {} });
-			} else context?.updateSimpleDomain<T, X>({ domain, data: updater, fetchState: {} });
+				context?.updateResponse<T, X>({ domain, data: res, fetchState: {} });
+			} else context?.updateResponse<T, X>({ domain, data: updater, fetchState: {} });
 		} catch (error) {
-			context?.updateSimpleDomainFetchState({ domain, fetchState: { error: error instanceof Error ? error : new Error(String(error)) } });
+			context?.updateState({ domain, fetchState: { error: error instanceof Error ? error : new Error(String(error)) } });
 		}
 	}
 
-	// TODO Wrapper
-	async function mutateValue<T, X>(newData: Partial<T>) {
-		const base = simpleData().data;
-		if (!base) return;
+	async function mutateValue(newData: Partial<T>) {
+		if (!canAct()) return;
 
-		context?.updateSimpleData<T>({ domain, data: { ...base.data, ...newData } });
+		context?.updateValue<T>({ domain, data: newData });
 	}
 
 	return {

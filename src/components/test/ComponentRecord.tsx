@@ -6,7 +6,7 @@ import { sleep } from "~/utils/sleep";
 
 export function ComponentRecord() {
 	const id = 123;
-	const { data, isLoading, refetch, error, isValidating, isReady, mutate } = useDataRecord<IUserSimple, undefined>({
+	const { data, isLoading, refetch, error, isValidating, isReady, mutateResponse, mutateValue } = useDataRecord<IUserSimple, undefined>({
 		domain: "user",
 		id,
 		fetcher: async (_id) => {
@@ -23,15 +23,19 @@ export function ComponentRecord() {
 		},
 	});
 
+	function justValue() {
+		mutateValue({ name: "update just value" });
+	}
+
 	function immediate() {
-		mutate((current) => ({
+		mutateResponse((current) => ({
 			...current,
 			data: { id: id, name: "immediate" },
 			responseState: ResponseState.Success,
 		}));
 	}
 	function withDelay() {
-		mutate(
+		mutateResponse(
 			async (current) => {
 				const freshData = await sleep(3000);
 				return {
@@ -68,6 +72,10 @@ export function ComponentRecord() {
 					</div>
 				</Match>
 			</Switch>
+
+			<button class="w-full p-2 bg-amber-300 rounded-xl text-center" onClick={justValue}>
+				justValue
+			</button>
 
 			<button class="w-full p-2 bg-amber-300 rounded-xl text-center" onClick={immediate}>
 				immediate

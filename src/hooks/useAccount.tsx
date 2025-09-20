@@ -8,7 +8,7 @@ type UserResponse = IResponse<Partial<IUser>>;
 
 export function useAccount() {
 	const { data, isLoading, isValidating, mutateResponse, refetch, response, isReady, mutateValue } = useDataSimple<Partial<IUser>, unknown>({
-		domain: "profile",
+		domain: "account",
 		fetcher: async () => {
 			try {
 				const res = await http.get("/account/check");

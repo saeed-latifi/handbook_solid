@@ -1,9 +1,9 @@
-import { splitProps } from "solid-js";
+import { JSX, splitProps } from "solid-js";
 import { cm } from "~/utils/classMerger";
 
 // Button props
 
-export function Button(props: any) {
+export function Button(props: JSX.ButtonHTMLAttributes<HTMLButtonElement>) {
 	const [local, others] = splitProps(props, ["children", "class"]);
 
 	return (

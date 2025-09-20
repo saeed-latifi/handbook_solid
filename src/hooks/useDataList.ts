@@ -49,20 +49,20 @@ export function useDataList<T = unknown, X = unknown, F extends Record<string, a
 	async function executeFetch(): Promise<IResponse<T[], X>> {
 		if (globalListFetchMap.has(key)) return (await globalListFetchMap.get(key)!) as IResponse<T[], X>;
 
-		context?.updateListFetchState({ domain, key, fetchState: { isLoading: true, isValidating: false, error: undefined } });
+		context?.updateListState({ domain, key, fetchState: { isLoading: true, isValidating: false, error: undefined } });
 
 		try {
 			const fetchPromise = fetcher(filterObject);
 			globalListFetchMap.set(key, fetchPromise);
 
 			const response = await fetchPromise;
-			context?.updateList<T, X>({ domain, key, data: response, fetchState: { isLoading: false, isValidating: false, error: undefined } });
+			context?.updateListResponse<T, X>({ domain, key, data: response, fetchState: { isLoading: false, isValidating: false, error: undefined } });
 
 			return response;
 		} catch (error) {
 			const errorResponse: IResponse<T[], X> = { responseState: "ServerError" };
 
-			context?.updateList<T, X>({ domain, key, data: errorResponse, fetchState: { isLoading: false, isValidating: false, error: error } });
+			context?.updateListResponse<T, X>({ domain, key, data: errorResponse, fetchState: { isLoading: false, isValidating: false, error: error } });
 
 			throw error;
 		} finally {
@@ -85,7 +85,9 @@ export function useDataList<T = unknown, X = unknown, F extends Record<string, a
 		} else if (updater) newData = updater;
 		else return;
 
-		context?.updateList<T, X>({ domain, key, data: { ...(existingList?.data ?? { responseState: ResponseState.Success }), data: newData }, fetchState: {} });
+		context?.updateListValue({ domain, key, data: newData });
+
+		// context?.updateListResponse<T, X>({ domain, key, data: { ...(existingList?.data ?? { responseState: ResponseState.Success }), data: newData }, fetchState: {} });
 	}
 
 	const refetch = () => executeFetch();

@@ -54,13 +54,13 @@ export function useDataRecord<T = unknown, X = unknown>({ domain, fetcher, id, i
 			onGoingRecordFetch.set(fetchId, fetchPromise);
 
 			const response = await fetchPromise;
-			context?.updateRecord<T, X>({ domain, data: response, fetchState: { isLoading: false, isValidating: false, error: undefined }, id });
+			context?.updateRecordResponse<T, X>({ domain, data: response, fetchState: { isLoading: false, isValidating: false, error: undefined }, id });
 
 			return response;
 		} catch (error) {
 			const errorResponse: IResponse<T, X> = { responseState: "ServerError" };
 
-			context?.updateRecord<T, X>({ domain, data: errorResponse, fetchState: { isLoading: false, isValidating: false, error: (error as Error).message }, id });
+			context?.updateRecordResponse<T, X>({ domain, data: errorResponse, fetchState: { isLoading: false, isValidating: false, error: (error as Error).message }, id });
 
 			return errorResponse;
 		} finally {
@@ -95,7 +95,7 @@ export function useDataRecord<T = unknown, X = unknown>({ domain, fetcher, id, i
 					}
 
 					// Update the list with the modified data
-					context?.updateList<T, X>({
+					context?.updateListResponse<T, X>({
 						domain,
 						key: listKey,
 						data: { ...listData.data, data: updatedListData },
@@ -106,7 +106,7 @@ export function useDataRecord<T = unknown, X = unknown>({ domain, fetcher, id, i
 		});
 	}
 
-	async function mutate(
+	async function mutateResponse(
 		updater: ((currentResponse?: Partial<IResponse<T, X>>) => Partial<IResponse<T, X>> | Promise<Partial<IResponse<T, X>>> | undefined) | Partial<IResponse<T, X>> | undefined,
 		options: { isSync?: boolean } = { isSync: false }
 	) {
@@ -130,7 +130,7 @@ export function useDataRecord<T = unknown, X = unknown>({ domain, fetcher, id, i
 			}
 
 			// Update the record
-			context?.updateRecord<T, X>({ domain, data: updatedResponse, fetchState: {}, id });
+			context?.updateRecordResponse<T, X>({ domain, data: updatedResponse, fetchState: {}, id });
 
 			// Sync across lists if requested
 			if (options.isSync) {
@@ -141,7 +141,11 @@ export function useDataRecord<T = unknown, X = unknown>({ domain, fetcher, id, i
 		}
 	}
 
-	const refetch = () => executeFetch();
+	async function mutateValue(newData: Partial<T>) {
+		if (!canAct()) return;
+
+		context?.updateRecordValue<T>({ domain, id, data: newData });
+	}
 
 	return {
 		domain: context?.getDomain<T, X>(domain),
@@ -156,8 +160,9 @@ export function useDataRecord<T = unknown, X = unknown>({ domain, fetcher, id, i
 
 		isReady: isReadyState,
 
-		refetch,
-		mutate,
+		refetch: executeFetch,
+		mutateResponse,
+		mutateValue,
 
 		id,
 	};
