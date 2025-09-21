@@ -1,3 +1,4 @@
+import { storageUrl } from "~/appConfig";
 import { Button } from "../components/button/Button";
 import { Form } from "../components/form/Form";
 import { Input } from "../components/form/Input";
@@ -19,10 +20,10 @@ export function LoginPage() {
 	return (
 		<Form onSubmit={onSubmit} class="items-center justify-center">
 			<div class="flex flex-col items-center w-full max-w-md h-max">
-				<img src={"https://dastan.storage.iran.liara.space/aram" + "/public/login-pwa.webp"} class="w-full h-full" alt="Login illustration" />
+				<img src={storageUrl + "/public/logo.webp"} class="w-full h-full" alt="Login illustration" />
 			</div>
 			<div class="w-full flex flex-col items-center text-center py-4 gap-1">
-				<p class="font-peyda-bold text-lg">آرامیار</p>
+				<p class="font-peyda-bold text-lg">ورود</p>
 			</div>
 
 			<Input
