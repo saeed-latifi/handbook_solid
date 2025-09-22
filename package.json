@@ -1,10 +1,10 @@
 {
-	"name": "solid-start-learn",
+	"name": "handbook-solid",
 	"type": "module",
 	"scripts": {
 		"dev": "vinxi dev",
 		"build": "vinxi build",
-		"start": "vinxi start",
+		"start": "vinxi start --port 3070",
 		"format": "prettier --write ."
 	},
 	"dependencies": {

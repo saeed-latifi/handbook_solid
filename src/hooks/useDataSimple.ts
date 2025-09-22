@@ -18,6 +18,8 @@ export function useDataSimple<T = unknown, X = unknown>({ domain, fetcher, isRea
 
 	const [isReadyState, setIsReadyState] = createSignal(typeof isReady === "boolean" ? isReady : isReady.constructor.name === "AsyncFunction" ? false : isReady());
 
+	const canAct = createMemo(() => isReadyState() && !simpleData()?.fetchState?.isLoading && !simpleData()?.fetchState?.isValidating);
+
 	createEffect(async () => {
 		if (typeof isReady === "boolean") {
 			setIsReadyState(isReady);
@@ -32,8 +34,6 @@ export function useDataSimple<T = unknown, X = unknown>({ domain, fetcher, isRea
 			setIsReadyState(false);
 		}
 	});
-
-	const canAct = createMemo(() => isReadyState() && !simpleData()?.fetchState?.isLoading && !simpleData()?.fetchState?.isValidating);
 
 	createEffect(() => {
 		if (canAct() && !simpleData()?.fetchState?.initialized) executeFetch().catch((error) => console.error("Fetch failed:", error));

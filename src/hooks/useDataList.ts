@@ -6,7 +6,7 @@ import { createDomainListKey, keyGenerator } from "~/utils/keyGenerator";
 interface UseListOptions<T, X, F extends Record<string, any> = Record<string, any>> {
 	filters?: F;
 	isReady?: boolean | (() => boolean) | (() => Promise<boolean>);
-	fetcher: (filters: Partial<F>) => Promise<IResponse<T[], X>>;
+	fetcher: (filters: Partial<F>) => Promise<IResponse<T[], X>> | Promise<IResponse<T[], X>>;
 	domain: IDomainNames;
 }
 
@@ -22,6 +22,8 @@ export function useDataList<T = unknown, X = unknown, F extends Record<string, a
 	const listData = createMemo(() => context?.getList<T, X>(domain, key));
 
 	const [isReadyState, setIsReadyState] = createSignal(typeof isReady === "boolean" ? isReady : isReady.constructor.name === "AsyncFunction" ? false : isReady());
+
+	const canAct = createMemo(() => isReadyState() && !listData()?.fetchState?.isLoading && !listData()?.fetchState?.isValidating);
 
 	createEffect(async () => {
 		if (typeof isReady === "boolean") {
@@ -70,24 +72,20 @@ export function useDataList<T = unknown, X = unknown, F extends Record<string, a
 		}
 	}
 
-	async function mutate(updater: ((currentData: T[] | undefined) => T[] | Promise<T[]> | undefined) | T[] | undefined) {
+	async function mutate(updater: ((currentData: T[] | undefined) => T[] | Promise<T[] | undefined> | undefined) | T[] | undefined) {
+		if (!updater || !canAct()) return;
+
 		const existingList = context?.getList<T, X>(domain, key);
 		const currentData = existingList?.data.data;
 
-		let newData: T[];
-
-		// TODO isValidating on async fetch
 		if (typeof updater === "function") {
-			const result = updater(currentData);
-			if (!result) return;
+			context?.updateListState({ domain, fetchState: { isValidating: true }, key });
+			const res = await updater(currentData);
+			context?.updateListState({ domain, fetchState: { isValidating: false }, key });
+			if (!res) return;
 
-			newData = result instanceof Promise ? await result : result;
-		} else if (updater) newData = updater;
-		else return;
-
-		context?.updateListValue({ domain, key, data: newData });
-
-		// context?.updateListResponse<T, X>({ domain, key, data: { ...(existingList?.data ?? { responseState: ResponseState.Success }), data: newData }, fetchState: {} });
+			context?.updateListValue({ domain, data: res, key });
+		} else context?.updateListValue({ domain, key, data: updater });
 	}
 
 	const refetch = () => executeFetch();

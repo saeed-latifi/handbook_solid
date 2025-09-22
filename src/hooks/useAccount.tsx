@@ -27,11 +27,7 @@ export function useAccount() {
 
 	async function onLogin({ password, phone }: { phone?: string; password?: string }) {
 		try {
-			const { data: response } = await http.post("/account/login", {
-				password,
-				phone,
-				student: 1,
-			});
+			const { data: response } = await http.post("/account/login", { password, phone });
 
 			mutateResponse(response);
 		} catch (error) {
@@ -52,12 +48,10 @@ export function useAccount() {
 	async function onForget(phone?: string) {
 		try {
 			const cleaned = replaceNullWithUndefined({ phone });
-			const { data: response } = await http.post("/account/forget", {
-				phone,
-				student: 1,
-			});
+			const { data: response } = await http.post("/account/forget", { phone });
 
-			mutateResponse({ ...cleaned, ...response?.data });
+			// TODO 			mutateResponse({ ...cleaned, ...response?.data });
+			mutateResponse(response);
 		} catch (_error) {
 			console.error("Forget password failed:", _error);
 		}
