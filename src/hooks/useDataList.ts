@@ -88,6 +88,21 @@ export function useDataList<T = unknown, X = unknown, F extends Record<string, a
 		} else context?.updateListValue({ domain, key, data: updater });
 	}
 
+	async function mutateResponse(updater: ((currentData: IResponse<T[], X> | undefined) => IResponse<T[], X> | Promise<IResponse<T[], X> | undefined> | undefined) | IResponse<T[], X> | undefined) {
+		if (!updater || !canAct()) return;
+
+		const existingList = context?.getList<T, X>(domain, key);
+
+		if (typeof updater === "function") {
+			context?.updateListState({ domain, fetchState: { isValidating: true }, key });
+			const res = await updater(existingList?.data);
+			context?.updateListState({ domain, fetchState: { isValidating: false }, key });
+			if (!res) return;
+
+			context?.updateListResponse({ domain, data: res, key, fetchState: {} });
+		} else context?.updateListResponse({ domain, key, data: updater, fetchState: {} });
+	}
+
 	const refetch = () => executeFetch();
 
 	return {
@@ -105,6 +120,7 @@ export function useDataList<T = unknown, X = unknown, F extends Record<string, a
 
 		refetch,
 		mutate,
+		mutateResponse,
 
 		key,
 		filters: filterObject,

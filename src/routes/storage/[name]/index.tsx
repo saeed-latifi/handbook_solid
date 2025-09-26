@@ -1,27 +1,22 @@
-import { useBucket } from "~/hooks/useBucket";
-import { Button } from "../button/Button";
-import Scroller from "../observer/scroller";
+import { useBucketInfo } from "~/hooks/useBucket";
+import { Input } from "~/components/form/Input";
+import { Button } from "~/components/button/Button";
 import { createResource, createSignal, For, Match, Switch } from "solid-js";
-import { Input } from "../form/Input";
-import IconClose from "../icons/IconClose";
-import { IconBucket } from "../icons/IconBucket";
-import { CardBucket } from "../card/CardBucket";
+import { CardBucket } from "~/components/card/CardBucket";
 
-Scroller;
-
-export function ComponentStorageBucket() {
-	const { getBucketLists, createBucket, deleteBucket, detail } = useBucket();
+export default function Home() {
+	// const { getBucketLists, createBucket, detail } = useBucketInfo();
 
 	const [bucketName, setBucketName] = createSignal("");
 	const [preFix, setPrefix] = createSignal("");
-	const [buckets, { refetch }] = createResource("allBuckets", getBucketLists);
+	// const [buckets, { refetch }] = createResource("allBuckets", getBucketLists);
 
 	return (
-		<>
+		<div class="w-full flex flex-col gap-4 p-4">
 			<Input value={bucketName()} oninput={(e) => setBucketName(e.target.value)} />
 			<Input value={preFix()} oninput={(e) => setPrefix(e.target.value)} />
-
-			<Button
+			<p>wwwwwwwwwwwwwwww</p>
+			{/* <Button
 				onClick={async () => {
 					await createBucket(bucketName());
 					refetch();
@@ -36,9 +31,9 @@ export function ComponentStorageBucket() {
 				}}
 			>
 				get detail
-			</Button>
+			</Button> */}
 
-			<Switch>
+			{/* <Switch>
 				<Match when={!buckets()}>
 					<div class="flex w-full h-full p-8 bg-fuchsia-200 rounded-xl">isLoading</div>
 				</Match>
@@ -47,7 +42,7 @@ export function ComponentStorageBucket() {
 						<For each={buckets()}>{(item) => <CardBucket bucket={item} />}</For>
 					</div>
 				</Match>
-			</Switch>
-		</>
+			</Switch> */}
+		</div>
 	);
 }

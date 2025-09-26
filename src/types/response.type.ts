@@ -25,7 +25,7 @@ export interface IResponse<T = undefined, X = undefined> {
 	redirectPath?: string;
 }
 
-export type IDomainNames = "user" | "lesson" | "some";
+export type IDomainNames = "user" | "lesson" | "some" | "buckets";
 export type IDomainSimpleNames = "settings" | "account";
 
 export interface IFetchState {
