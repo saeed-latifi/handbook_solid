@@ -6,7 +6,7 @@ interface DomainContextValue {
 	domains: { [K in IDomainNames]?: IDomainStore<unknown, unknown> };
 	getDomain: <T, X>(domain: IDomainNames) => IDomainStore<T, X>;
 	getList: <T, X>(domain: IDomainNames, key: string) => IListData<T, X> | undefined;
-	getRecord: <T, X>(domain: IDomainNames, id: string | number) => IRecordData<T, X> | undefined;
+	getRecord: <T, X>(props: { domain: IDomainNames; id: string | number }) => IRecordData<T, X> | undefined;
 	updateListResponse: <T, X>(args: { domain: IDomainNames; key: string; data: IResponse<T[], X>; fetchState: Partial<IFetchState> }) => void;
 	updateListState: (args: { domain: IDomainNames; key: string; fetchState: Partial<IFetchState> }) => void;
 	updateListValue: <T>({ domain, key, data }: { domain: IDomainNames; key: string; data: T[] }) => void;
@@ -52,8 +52,8 @@ export function DomainProvider(props: { children: any }) {
 		return domains[name]?.lists[key] as IListData<T, X> | undefined;
 	}
 
-	function getRecord<T, X>(name: IDomainNames, id: string | number): IRecordData<T, X> | undefined {
-		return domains[name]?.records[id] as IRecordData<T, X> | undefined;
+	function getRecord<T, X>({ id, domain }: { domain: IDomainNames; id: string | number }): IRecordData<T, X> | undefined {
+		return domains[domain]?.records[id] as IRecordData<T, X> | undefined;
 	}
 
 	function updateListResponse<T, X>({ domain, key, data, fetchState }: { domain: IDomainNames; key: string; data: IResponse<T[], X>; fetchState: Partial<IFetchState> }) {

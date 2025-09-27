@@ -5,6 +5,8 @@ import { IResponse } from "~/types/response.type";
 import { useDataRecord } from "./useDataRecord";
 import toast from "solid-toast";
 import { arrayPurger } from "~/utils/arrayPurger";
+import { IS3BucketInfo } from "~/types/S3";
+import { createEffect, createMemo, splitProps } from "solid-js";
 
 export function useBucketList() {
 	const { data, isLoading, response, mutateResponse, mutate } = useDataList({
@@ -28,9 +30,7 @@ export function useBucketList() {
 
 		if (res.validations) {
 			mutateResponse(async (list) => {
-				if (!list?.data) return undefined;
-
-				const response: IResponse<IBucket[]> = { data: list.data, validations: res.validations as any };
+				const response: IResponse<IBucket[]> = { ...list, validations: res.validations as any };
 				return response;
 			});
 		}
@@ -65,15 +65,22 @@ export function useBucketList() {
 	return { data, isLoading, createBucket, deleteBucket, response };
 }
 
-export function useBucketInfo(name: string) {
-	const { data, isLoading } = useDataRecord({
-		domain: "buckets",
-		id: name,
-		fetcher: async () => {
-			const { data } = await http.get(`/storage/bucket/detail/${name}`);
-			return data as IResponse<IBucket>;
-		},
+export function useBucketInfo({ name, prefix }: { name: () => string; prefix?: () => string | undefined }) {
+	const doubledValue = createMemo(() => {
+		const record = useDataRecord({
+			domain: "buckets",
+			id: () => name() + "/" + (prefix?.() ?? ""),
+			fetcher: async () => {
+				console.log({ x: name(), y: prefix?.() });
+
+				const { data } = await http.get(`/storage/bucket/detail/${name()}`, { params: { prefix: prefix?.() } });
+				return data as IResponse<IS3BucketInfo>;
+			},
+		});
+		return record;
 	});
 
-	return { data, isLoading };
+	// createEffect(() => {});
+
+	return doubledValue();
 }

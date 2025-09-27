@@ -1,20 +1,23 @@
 import { createEffect, createMemo, createSignal, useContext } from "solid-js";
 import { DomainContext } from "~/context/domainContext";
 import { IDomainNames, IResponse } from "~/types/response.type";
+
 interface UseRecordOptions<T, X> {
-	id: string | number;
-	isReady?: boolean | (() => boolean) | (() => Promise<boolean>);
+	id: () => string | number;
+	isReady?: () => boolean | Promise<boolean>;
 	fetcher: (id: string | number) => Promise<IResponse<T, X>>;
 	domain: IDomainNames;
 }
 
 const onGoingRecordFetch = new Map<string, Promise<any>>();
 
-export function useDataRecord<T = unknown, X = unknown>({ domain, fetcher, id, isReady = true }: UseRecordOptions<T, X>) {
+export function useDataRecord<T = unknown, X = unknown>({ domain, fetcher, id, isReady = () => true }: UseRecordOptions<T, X>) {
+	console.log({ id: id() });
+
 	const context = useContext(DomainContext);
 	if (!context) throw new Error("useRecord must be used within DomainProvider");
 
-	const recordData = createMemo(() => context?.getRecord<T, X>(domain, id));
+	const recordData = createMemo(() => context?.getRecord<T, X>({ domain, id: id() }));
 
 	const [isReadyState, setIsReadyState] = createSignal(typeof isReady === "boolean" ? isReady : isReady.constructor.name === "AsyncFunction" ? false : isReady());
 
@@ -38,6 +41,8 @@ export function useDataRecord<T = unknown, X = unknown>({ domain, fetcher, id, i
 	const canAct = createMemo(() => isReadyState() && !recordData()?.fetchState?.isLoading && !recordData()?.fetchState?.isValidating);
 
 	createEffect(() => {
+		console.log("mmm", id());
+
 		if (canAct() && !recordData()?.fetchState?.initialized) executeFetch().catch((error) => console.error("Fetch failed:", error));
 	});
 
@@ -47,20 +52,23 @@ export function useDataRecord<T = unknown, X = unknown>({ domain, fetcher, id, i
 		if (!canAct()) return;
 		console.log("fetch");
 
-		context?.updateRecordFetchState({ domain, fetchState: { isLoading: true, isValidating: false, error: undefined }, id });
+		context?.updateRecordFetchState({ domain, fetchState: { isLoading: true, isValidating: false, error: undefined }, id: id() });
 
 		try {
-			const fetchPromise = fetcher(id);
+			const fetchPromise = fetcher(id());
 			onGoingRecordFetch.set(fetchId, fetchPromise);
 
 			const response = await fetchPromise;
-			context?.updateRecordResponse<T, X>({ domain, data: response, fetchState: { isLoading: false, isValidating: false, error: undefined }, id });
+
+			console.log({ response });
+
+			context?.updateRecordResponse<T, X>({ domain, data: response, fetchState: { isLoading: false, isValidating: false, error: undefined }, id: id() });
 
 			return response;
 		} catch (error) {
 			const errorResponse: IResponse<T, X> = { responseState: "ServerError" };
 
-			context?.updateRecordResponse<T, X>({ domain, data: errorResponse, fetchState: { isLoading: false, isValidating: false, error: (error as Error).message }, id });
+			context?.updateRecordResponse<T, X>({ domain, data: errorResponse, fetchState: { isLoading: false, isValidating: false, error: (error as Error).message }, id: id() });
 
 			return errorResponse;
 		} finally {
@@ -114,14 +122,14 @@ export function useDataRecord<T = unknown, X = unknown>({ domain, fetcher, id, i
 			if (!updater || !canAct()) return;
 			console.log("mutate");
 
-			const currentResponse = context?.getRecord<T, X>(domain, id)?.data;
+			const currentResponse = context?.getRecord<T, X>({ domain, id: id() })?.data;
 
 			let updatedResponse: Partial<IResponse<T, X>>;
 
 			if (typeof updater === "function") {
-				context?.updateRecordFetchState({ domain, fetchState: { isValidating: true }, id });
+				context?.updateRecordFetchState({ domain, fetchState: { isValidating: true }, id: id() });
 				const result = await updater(currentResponse);
-				context?.updateRecordFetchState({ domain, fetchState: { isValidating: false }, id });
+				context?.updateRecordFetchState({ domain, fetchState: { isValidating: false }, id: id() });
 				if (!result) return;
 
 				updatedResponse = result;
@@ -130,21 +138,21 @@ export function useDataRecord<T = unknown, X = unknown>({ domain, fetcher, id, i
 			}
 
 			// Update the record
-			context?.updateRecordResponse<T, X>({ domain, data: updatedResponse, fetchState: {}, id });
+			context?.updateRecordResponse<T, X>({ domain, data: updatedResponse, fetchState: {}, id: id() });
 
 			// Sync across lists if requested
 			if (options.isSync) {
 				syncRecordAcrossLists(updatedResponse);
 			}
 		} catch (error) {
-			context?.updateRecordFetchState({ domain, fetchState: { error: error instanceof Error ? error : new Error(String(error)) }, id });
+			context?.updateRecordFetchState({ domain, fetchState: { error: error instanceof Error ? error : new Error(String(error)) }, id: id() });
 		}
 	}
 
 	async function mutateValue(newData: Partial<T>) {
 		if (!canAct()) return;
 
-		context?.updateRecordValue<T>({ domain, id, data: newData });
+		context?.updateRecordValue<T>({ domain, id: id(), data: newData });
 	}
 
 	return {

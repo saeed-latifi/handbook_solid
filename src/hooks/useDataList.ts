@@ -4,7 +4,7 @@ import { IDomainNames, IListData, IResponse, ResponseState } from "~/types/respo
 import { createDomainListKey, keyGenerator } from "~/utils/keyGenerator";
 
 interface UseListOptions<T, X, F extends Record<string, any> = Record<string, any>> {
-	filters?: F;
+	filters?: () => F;
 	isReady?: boolean | (() => boolean) | (() => Promise<boolean>);
 	fetcher: (filters: Partial<F>) => Promise<IResponse<T[], X>> | Promise<IResponse<T[], X>>;
 	domain: IDomainNames;
@@ -16,8 +16,10 @@ export function useDataList<T = unknown, X = unknown, F extends Record<string, a
 	const context = useContext(DomainContext);
 	if (!context) throw new Error("useList must be used within DomainProvider");
 
-	const filterObject = keyGenerator(filters) as Partial<F>;
-	const key = createDomainListKey(domain, filters);
+	// const filterObject = keyGenerator(filters) as Partial<F>;
+	const filterObject = createMemo(() => keyGenerator(filters?.()) as Partial<F>);
+
+	const key = createDomainListKey(domain, filters?.());
 
 	const listData = createMemo(() => context?.getList<T, X>(domain, key));
 
@@ -41,6 +43,8 @@ export function useDataList<T = unknown, X = unknown, F extends Record<string, a
 	});
 
 	createEffect(() => {
+		console.log({ filterObject: filterObject() });
+
 		if (isReadyState() && (!listData() || !listData()?.fetchState.initialized)) {
 			executeFetch().catch((error) => {
 				console.error("Fetch failed:", error);
@@ -54,7 +58,7 @@ export function useDataList<T = unknown, X = unknown, F extends Record<string, a
 		context?.updateListState({ domain, key, fetchState: { isLoading: true, isValidating: false, error: undefined } });
 
 		try {
-			const fetchPromise = fetcher(filterObject);
+			const fetchPromise = fetcher(filterObject());
 			globalListFetchMap.set(key, fetchPromise);
 
 			const response = await fetchPromise;
@@ -105,10 +109,18 @@ export function useDataList<T = unknown, X = unknown, F extends Record<string, a
 
 	const refetch = () => executeFetch();
 
+	const data = createMemo(() => context?.getList<T, X>(domain, key)?.data.data);
+
+	createEffect(() => {
+		const list = listData();
+		if (list?.data) {
+			console.log("zzzz", list.data.data); // Track the actual array
+		}
+	});
 	return {
 		domain: context?.getDomain<T, X>(domain),
 
-		data: () => listData()?.data.data,
+		data,
 		response: () => listData()?.data,
 
 		isLoading: () => !listData()?.fetchState.initialized || listData()?.fetchState.isLoading || false,

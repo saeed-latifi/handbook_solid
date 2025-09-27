@@ -45,7 +45,7 @@ export function CardBucket({ bucket }: { bucket: IBucket }) {
 	return (
 		<div onClick={() => navigate(`/storage/${bucket.Name}`)} class="clicker bg-white rounded-lg aspect-square w-full flex flex-col border border-border relative items-center justify-center overflow-hidden">
 			<div class="flex p-2 flex-1 aspect-square">
-				<IconBucket class="fill-indigo-600" />
+				<IconBucket class="fill-gray-500" />
 			</div>
 			<p class="w-full bg-gray-200 px-4 py-1 font-peyda-bold truncate">{bucket.Name}</p>
 
