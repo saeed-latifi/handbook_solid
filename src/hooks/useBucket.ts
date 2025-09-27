@@ -65,22 +65,16 @@ export function useBucketList() {
 	return { data, isLoading, createBucket, deleteBucket, response };
 }
 
-export function useBucketInfo({ name, prefix }: { name: () => string; prefix?: () => string | undefined }) {
-	const doubledValue = createMemo(() => {
-		const record = useDataRecord({
-			domain: "buckets",
-			id: () => name() + "/" + (prefix?.() ?? ""),
-			fetcher: async () => {
-				console.log({ x: name(), y: prefix?.() });
+export function useBucketInfo({ name, prefix }: { name: () => string; prefix: () => string | undefined }) {
+	const record = useDataRecord({
+		domain: "buckets",
+		id: () => name() + "/" + (prefix?.() ?? ""),
+		fetcher: async () => {
+			console.log({ x: name(), y: prefix?.() });
 
-				const { data } = await http.get(`/storage/bucket/detail/${name()}`, { params: { prefix: prefix?.() } });
-				return data as IResponse<IS3BucketInfo>;
-			},
-		});
-		return record;
+			const { data } = await http.get(`/storage/bucket/detail/${name()}`, { params: { prefix: prefix() ? prefix() + "/" : "" } });
+			return data as IResponse<IS3BucketInfo>;
+		},
 	});
-
-	// createEffect(() => {});
-
-	return doubledValue();
+	return record;
 }

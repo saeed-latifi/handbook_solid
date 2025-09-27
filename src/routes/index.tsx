@@ -7,12 +7,12 @@ export default function Home() {
 	const [filter, setFilter] = createSignal("");
 	const [text, setTExt] = createSignal("");
 
-	const { data } = useDataList<{ id: string }>({
+	const { data } = useDataList<{ gg: string }>({
 		domain: "some",
-		filters: () => ({ id: filter() ?? undefined }),
-		fetcher: async ({ id }) => {
+		filters: () => ({ f: filter() ?? undefined }),
+		fetcher: async ({ f }) => {
 			// return [{ id: 1 + (id ?? "") }, { id: 2 + (id ?? "") }];
-			return { data: [{ id: 1 + (id ?? "") }, { id: 2 + (id ?? "") }], responseState: "Ok" };
+			return { data: [{ gg: 1 + (f ?? "") }, { gg: 2 + (f ?? "") }], responseState: "Ok" };
 		},
 	});
 	return (
@@ -34,7 +34,7 @@ export default function Home() {
 			</Button>
 
 			<Show when={data()}>
-				<For each={data()}>{(item) => <div>{item.id}</div>}</For>
+				<For each={data()}>{(item) => <div>{item.gg}</div>}</For>
 			</Show>
 		</div>
 	);

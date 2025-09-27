@@ -12,7 +12,10 @@ export function CardS3Item({ item, bucketName, path }: { item: IS3Item; bucketNa
 	const { name, type } = s3ContentType(item.Key);
 
 	const storageURL = "http://localhost:9000/";
+
 	function onClick() {
+		console.log("uuu", item);
+
 		if (type === "folder") {
 			navigate(`/storage/${bucketName}/${path}${item.Key}`);
 		}

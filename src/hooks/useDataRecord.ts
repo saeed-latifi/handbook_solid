@@ -155,10 +155,16 @@ export function useDataRecord<T = unknown, X = unknown>({ domain, fetcher, id, i
 		context?.updateRecordValue<T>({ domain, id: id(), data: newData });
 	}
 
+	const data = createMemo(() => recordData()?.data?.data);
+
+	// createEffect(() => {
+	// 	console.log("vvvvv", data());
+	// });
+
 	return {
 		domain: context?.getDomain<T, X>(domain),
 
-		data: () => recordData()?.data?.data,
+		data,
 		response: () => recordData()?.data,
 
 		isLoading: () => !recordData()?.fetchState.initialized || recordData()?.fetchState.isLoading || false,
