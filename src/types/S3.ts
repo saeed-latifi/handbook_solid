@@ -5,8 +5,13 @@ export interface IS3Item {
 	Size: number;
 }
 
+export interface IS3Prefix {
+	Prefix: string;
+}
+
 export interface IS3BucketInfo {
 	Contents: IS3Item[];
+	CommonPrefixes?: IS3Prefix[];
 	IsTruncated: boolean;
 	KeyCount: number;
 	MaxKeys: number;

@@ -6,8 +6,8 @@ export function CardNotFound({ messages, createFirst }: { messages: string[]; cr
 		<CardCenter>
 			<div class="flex flex-col gap-2 text-action fill-action items-center justify-center bg-white border border-border rounded-2xl p-8 font-peyda-bold">
 				<For each={messages}>{(item) => <p>{item}</p>}</For>
+				{createFirst}
 			</div>
-			{createFirst}
 		</CardCenter>
 	);
 }

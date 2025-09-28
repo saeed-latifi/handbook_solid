@@ -1,24 +1,19 @@
-import { IconBucket } from "../icons/IconBucket";
-import { useNavigate } from "@solidjs/router";
+import { useNavigate, useLocation } from "@solidjs/router";
 import { IS3Item } from "~/types/S3";
 import { Match, Switch } from "solid-js";
-import { IconFolder } from "../icons/IconFolder";
 import { IconAlert } from "../icons/IconAlert";
 import { IconVideo } from "../icons/IconVideo";
+import { storageUrl } from "~/appConfig";
+import { IconBack } from "../icons/IconBack";
 
-export function CardS3Item({ item, bucketName, path }: { item: IS3Item; bucketName: string; path: string }) {
+export function CardS3Item({ item, bucketName }: { item: IS3Item; bucketName: string }) {
 	const navigate = useNavigate();
+	const location = useLocation();
 
 	const { name, type } = s3ContentType(item.Key);
 
-	const storageURL = "http://localhost:9000/";
-
 	function onClick() {
-		console.log("uuu", item);
-
-		if (type === "folder") {
-			navigate(`/storage/${bucketName}/${path}${item.Key}`);
-		}
+		if (type === "back") navigate(goBackOneLevel(location.pathname));
 	}
 
 	return (
@@ -29,19 +24,20 @@ export function CardS3Item({ item, bucketName, path }: { item: IS3Item; bucketNa
 		>
 			<div class="flex flex-1 overflow-hidden">
 				<Switch>
-					<Match when={type === "folder"}>
-						<div class="w-full h-full flex items-center justify-center">
-							<IconFolder class="fill-gray-500 w-full h-full aspect-square max-w-24" />
-						</div>
-					</Match>
 					<Match when={type === "image"}>
-						<img src={storageURL + bucketName + "/" + item.Key} alt="" class="w-full h-full" />
+						<img src={storageUrl + "/" + bucketName + "/" + item.Key} alt="" class="w-full h-full" />
 					</Match>
 					<Match when={type === "video"}>
 						<div class="w-full h-full flex items-center justify-center">
 							<IconVideo class="fill-gray-500 w-full h-full aspect-square max-w-24" />
 						</div>
 					</Match>
+					<Match when={type === "back"}>
+						<div class="w-full h-full flex items-center justify-center">
+							<IconBack class="fill-gray-500 w-full h-full aspect-square max-w-24" />
+						</div>
+					</Match>
+
 					<Match when={type === "none"}>
 						<div class="w-full h-full flex items-center justify-center">
 							<IconAlert class="fill-gray-500 w-full h-full aspect-square max-w-24" />
@@ -49,27 +45,20 @@ export function CardS3Item({ item, bucketName, path }: { item: IS3Item; bucketNa
 					</Match>
 				</Switch>
 			</div>
-			<p class="w-full bg-gray-200 px-2 py-0.5 font-peyda-bold text-sm truncate min-h-fit">{type === "none" ? item.Key : name}</p>
+			<p class="w-full bg-gray-200 px-2 py-0.5 font-peyda-bold text-sm truncate min-h-fit">{type === "back" ? "بازگشت" : type === "none" ? getLastWord(item.Key) : getLastWord(name)}</p>
 		</button>
 	);
 }
 
-type IS3ContentType = "folder" | "image" | "video" | "none";
+type IS3ContentType = "image" | "video" | "none" | "back";
 
 function s3ContentType(key: string): { type: IS3ContentType; name: string } {
-	if (key.endsWith("/")) return { type: "folder", name: key.slice(0, -1) };
+	if (key.endsWith("/")) return { type: "back", name: key.slice(0, -1) };
 
 	const { name, type } = parseFileName(key);
-	console.log({ name, type });
 
-	if (type === "webp" || type === "jpg" || type === "png") {
-		return { name, type: "image" };
-	}
-
-	if (type === "mp4") {
-		return { name, type: "video" };
-	}
-
+	if (type === "webp" || type === "jpg" || type === "png") return { name, type: "image" };
+	if (type === "mp4") return { name, type: "video" };
 	return { type: "none", name };
 }
 
@@ -81,4 +70,18 @@ function parseFileName(filename: string) {
 	const type = filename.substring(lastDotIndex + 1);
 
 	return { type: type, name: name };
+}
+
+function getLastWord(str: string) {
+	return str.split("/").filter(Boolean).pop() || "";
+}
+
+function goBackOneLevel(url: string) {
+	// Remove trailing slashes and split by '/'
+	const parts = url.replace(/\/+$/, "").split("/");
+
+	// Remove the last segment and join back
+	const newParts = parts.slice(0, -1);
+
+	return newParts.join("/") + (newParts.length > 0 ? "/" : "");
 }

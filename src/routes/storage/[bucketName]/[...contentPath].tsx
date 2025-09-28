@@ -1,18 +1,19 @@
 import { useBucketInfo } from "~/hooks/useBucket";
-import { createEffect, createMemo, For, Match, Switch } from "solid-js";
-import { useParams } from "@solidjs/router";
+import { For, Match, Switch } from "solid-js";
+import { useParams, useLocation, useNavigate } from "@solidjs/router";
 import { CardLoading } from "~/components/card/CardLoading";
 import { CardS3Item } from "~/components/card/CardS3Item";
 import { CardNotFound } from "~/components/card/CardNotFound";
+import { CardS3Folder } from "~/components/card/CardS3Folder";
+import { CardS3AddFolder } from "~/components/card/CardS3AddFolder";
+import { CardS3UploadFile } from "~/components/card/CardS3UploadFile";
 
-export default function Home() {
+export default function StorageFolderPage() {
 	const params = useParams();
+	const navigator = useNavigate();
+	const { pathname } = useLocation();
 
 	const { data, isLoading } = useBucketInfo({ name: () => params.bucketName, prefix: () => params.contentPath });
-
-	createEffect(() => {
-		console.log("vvvvv", data());
-	});
 
 	function Header() {
 		return (
@@ -29,20 +30,30 @@ export default function Home() {
 				<CardLoading />
 			</Match>
 
-			<Match when={data() && !data()?.Contents?.length}>
+			<Match when={data() && !data()?.Contents?.length && !data()?.CommonPrefixes?.length}>
 				<div class="w-full flex flex-col gap-4 flex-1">
-					<Header />
+					{/* <Header /> */}
 					<div class="flex-1 w-full h-full items-center justify-center flex">
-						<CardNotFound messages={["محتوایی وجود ندارد"]} />
+						<CardNotFound
+							messages={["محتوایی وجود ندارد"]}
+							createFirst={
+								<div class="w-full max-w-40 flex items-center justify-center gap-4">
+									<CardS3AddFolder bucketName={params.bucketName} />
+								</div>
+							}
+						/>
 					</div>
 				</div>
 			</Match>
 
 			<Match when={data()}>
 				<div class="w-full flex flex-col gap-4">
-					<Header />
+					{/* <Header /> */}
 					<div class="w-full grid grid-cols-3 gap-4">
-						<For each={data()?.Contents}>{(item) => <CardS3Item path={useParams().contentPath} item={item} bucketName={params.bucketName} />}</For>
+						<CardS3AddFolder bucketName={params.bucketName} />
+						<CardS3UploadFile bucketName="" />
+						<For each={data()?.CommonPrefixes}>{(item) => <CardS3Folder item={item} bucketName={params.bucketName} />}</For>
+						<For each={data()?.Contents}>{(item) => <CardS3Item item={item} bucketName={params.bucketName} />}</For>
 					</div>
 				</div>
 			</Match>
