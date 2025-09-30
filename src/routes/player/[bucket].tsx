@@ -14,10 +14,12 @@ export default function TestPage() {
 
 	console.log({ params: JSON.stringify(params) });
 
-	("https://storage.saeedlatifi.ir/no-hash/playlist.m3u8");
+	const src = `https://storage.saeedlatifi.ir/${params.bucket}/playlist.m3u8`;
+	// const src = `http://localhost:9000/${params.bucket}/playlist.m3u8`;
+	// const src = `https://dastan.storage.iran.liara.space/${params.bucket}/playlist.m3u8`;
 	return (
 		<div class="w-full flex flex-col gap-4 p-4">
-			<HlsPlayer src={`https://storage.saeedlatifi.ir/${params.bucket}/playlist.m3u8`} />
+			<HlsPlayer src={src} />
 		</div>
 	);
 }

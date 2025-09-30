@@ -3,8 +3,12 @@ import axios from "axios";
 import { IResponse } from "~/types/response.type";
 import { http } from "~/components/http";
 import toast from "solid-toast";
+import { useParams } from "@solidjs/router";
 
 export default function UploadFiles({ prefix }: { prefix?: string }) {
+	const params = useParams();
+	const bucketName = params.bucketName;
+
 	const [files, setFiles] = createSignal<File[]>([]);
 	const [progressMap, setProgressMap] = createSignal<Record<string, number>>({});
 
@@ -24,7 +28,7 @@ export default function UploadFiles({ prefix }: { prefix?: string }) {
 			await Promise.all(
 				selectedFiles.map(async (file) => {
 					// 1. Request presigned URL for each file
-					const { data } = await http.post<IResponse<{ url: string }>>("/storage/file/sign", { bucketName: "lufy", fileName: file.name, type: file.type });
+					const { data } = await http.post<IResponse<{ url: string }>>("/storage/file/sign", { bucketName, fileName: file.name, type: file.type });
 					const url = data.data?.url;
 					if (!url) throw new Error("Bad presigned URL");
 
@@ -65,7 +69,13 @@ export default function UploadFiles({ prefix }: { prefix?: string }) {
 }
 
 function getContentType(file: File) {
+	// .m3u8 files as application/vnd.apple.mpegurl
+	// .ts files as video/mp2t
+	console.log({ file });
+
 	if (file.name.endsWith(".m3u8")) return "application/vnd.apple.mpegurl";
+	if (file.name.endsWith(".ts")) return "video/mp2t";
+	if (file.name.endsWith(".key")) return "application/octet-stream";
 	if (file.type) return file.type;
 	return "application/octet-stream"; // fallback
 }
