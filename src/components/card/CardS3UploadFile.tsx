@@ -2,14 +2,15 @@ import { useModal } from "~/context/modal.context";
 import ModalBase from "../modal/modal.base";
 import CardModal from "./CardModal";
 import { IconAddFile } from "../icons/IconAddFile";
+import S3UploadBox from "../S3UploadBox";
 
-export function CardS3UploadFile({ bucketName }: { bucketName: string }) {
+export function CardS3UploadFile({ bucketName, parents }: { bucketName: string; parents?: string[] }) {
 	const { onClear, onModal } = useModal();
 	function onClick() {
 		onModal(
 			<ModalBase onClear={onClear}>
 				<CardModal>
-					<div></div>
+					<S3UploadBox bucketName={bucketName} parents={parents} />
 				</CardModal>
 			</ModalBase>
 		);

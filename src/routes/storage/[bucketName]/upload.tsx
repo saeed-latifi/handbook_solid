@@ -1,81 +1,10 @@
-import { createSignal } from "solid-js";
-import axios from "axios";
-import { IResponse } from "~/types/response.type";
-import { http } from "~/components/http";
-import toast from "solid-toast";
-import { useParams } from "@solidjs/router";
+import { useLocation, useParams } from "@solidjs/router";
+import S3UploadBox from "~/components/S3UploadBox";
+import { s3FolderPathExtractor } from "~/utils/extractPathSegments";
 
-export default function UploadFiles({ prefix }: { prefix?: string }) {
+export default function UploadFiles() {
 	const params = useParams();
-	const bucketName = params.bucketName;
+	const { pathname } = useLocation();
 
-	const [files, setFiles] = createSignal<File[]>([]);
-	const [progressMap, setProgressMap] = createSignal<Record<string, number>>({});
-
-	const handleFileChange = (e: Event) => {
-		const input = e.target as HTMLInputElement;
-		if (input.files) {
-			setFiles(Array.from(input.files));
-			setProgressMap({});
-		}
-	};
-
-	const handleUpload = async () => {
-		const selectedFiles = files();
-		if (!selectedFiles.length) return;
-
-		try {
-			await Promise.all(
-				selectedFiles.map(async (file) => {
-					// 1. Request presigned URL for each file
-					const { data } = await http.post<IResponse<{ url: string }>>("/storage/file/sign", { bucketName, fileName: file.name, type: file.type });
-					const url = data.data?.url;
-					if (!url) throw new Error("Bad presigned URL");
-
-					// 2. Upload file directly to S3
-					console.log(file);
-					await axios.put(url, file, {
-						headers: { "Content-Type": getContentType(file) },
-						onUploadProgress: (e) => {
-							if (e.total) {
-								setProgressMap((prev) => ({
-									...prev,
-									[file.name]: Math.round((e.loaded * 100) / (e?.total ?? 1)),
-								}));
-							}
-						},
-					});
-				})
-			);
-
-			toast.success("All files uploaded ✅");
-		} catch (err) {
-			console.error(err);
-			toast.error("Some uploads failed ❌");
-		}
-	};
-
-	return (
-		<div>
-			<input type="file" multiple onChange={handleFileChange} />
-			<button onClick={handleUpload}>Upload All</button>
-			{files().map((file, index) => (
-				<p>
-					{file.name}: {progressMap()[file.name] ?? 0}%
-				</p>
-			))}
-		</div>
-	);
-}
-
-function getContentType(file: File) {
-	// .m3u8 files as application/vnd.apple.mpegurl
-	// .ts files as video/mp2t
-	console.log({ file });
-
-	if (file.name.endsWith(".m3u8")) return "application/vnd.apple.mpegurl";
-	if (file.name.endsWith(".ts")) return "video/mp2t";
-	if (file.name.endsWith(".key")) return "application/octet-stream";
-	if (file.type) return file.type;
-	return "application/octet-stream"; // fallback
+	return <S3UploadBox bucketName={params.bucketName} parents={s3FolderPathExtractor({ bucketName: params.bucketName, pathname })} />;
 }

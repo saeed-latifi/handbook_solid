@@ -11,8 +11,9 @@ import { useBucketInfo } from "~/hooks/useBucket";
 import { useLocation, useParams } from "@solidjs/router";
 import { IS3Prefix } from "~/types/S3";
 import toast from "solid-toast";
+import { s3FolderPathExtractor } from "~/utils/extractPathSegments";
 
-export function CardS3AddFolder({ bucketName }: { bucketName: string }) {
+export function CardS3AddFolder({ bucketName, parents }: { bucketName: string; parents?: string[] }) {
 	const params = useParams();
 	const { pathname } = useLocation();
 
@@ -47,7 +48,6 @@ export function CardS3AddFolder({ bucketName }: { bucketName: string }) {
 		const re = pathname.split("/");
 		if (re.includes(folderName())) return toast.error("نام مسیر تکراری است");
 
-		const parents = extractPathSegments({ bucketName, pathname });
 		if (!data()) return;
 		const { data: res } = await http.post<IResponse<{ bucketName: string; folderName: string }>>("/storage/folder", { bucketName, folderName: folderName(), parents });
 
@@ -78,17 +78,4 @@ export function CardS3AddFolder({ bucketName }: { bucketName: string }) {
 			</Match>
 		</Switch>
 	);
-}
-
-function extractPathSegments({ bucketName, pathname }: { pathname: string; bucketName: string }) {
-	// Remove leading/trailing slashes and split
-	const segments = pathname.replace(/^\/+|\/+$/g, "").split("/");
-
-	// Find FIRST occurrence of base
-	const baseIndex = segments.indexOf(bucketName);
-
-	if (baseIndex === -1) return [];
-
-	// Return segments after first base occurrence
-	return segments.slice(baseIndex + 1).filter((segment) => segment !== "");
 }

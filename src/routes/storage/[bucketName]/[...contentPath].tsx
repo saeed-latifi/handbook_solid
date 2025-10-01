@@ -1,16 +1,16 @@
 import { useBucketInfo } from "~/hooks/useBucket";
 import { For, Match, Switch } from "solid-js";
-import { useParams, useLocation, useNavigate } from "@solidjs/router";
+import { useParams, useLocation } from "@solidjs/router";
 import { CardLoading } from "~/components/card/CardLoading";
 import { CardS3Item } from "~/components/card/CardS3Item";
 import { CardNotFound } from "~/components/card/CardNotFound";
 import { CardS3Folder } from "~/components/card/CardS3Folder";
 import { CardS3AddFolder } from "~/components/card/CardS3AddFolder";
 import { CardS3UploadFile } from "~/components/card/CardS3UploadFile";
+import { s3FolderPathExtractor } from "~/utils/extractPathSegments";
 
 export default function StorageFolderPage() {
 	const params = useParams();
-	const navigator = useNavigate();
 	const { pathname } = useLocation();
 
 	const { data, isLoading } = useBucketInfo({ name: () => params.bucketName, prefix: () => params.contentPath });
@@ -38,7 +38,8 @@ export default function StorageFolderPage() {
 							messages={["محتوایی وجود ندارد"]}
 							createFirst={
 								<div class="w-full max-w-40 flex items-center justify-center gap-4">
-									<CardS3AddFolder bucketName={params.bucketName} />
+									<CardS3AddFolder bucketName={params.bucketName} parents={s3FolderPathExtractor({ bucketName: params.bucketName, pathname })} />
+									<CardS3UploadFile bucketName={params.bucketName} parents={s3FolderPathExtractor({ bucketName: params.bucketName, pathname })} />
 								</div>
 							}
 						/>
@@ -50,8 +51,8 @@ export default function StorageFolderPage() {
 				<div class="w-full flex flex-col gap-4">
 					{/* <Header /> */}
 					<div class="w-full grid grid-cols-3 gap-4">
-						<CardS3AddFolder bucketName={params.bucketName} />
-						<CardS3UploadFile bucketName="" />
+						<CardS3AddFolder bucketName={params.bucketName} parents={s3FolderPathExtractor({ bucketName: params.bucketName, pathname })} />
+						<CardS3UploadFile bucketName={params.bucketName} parents={s3FolderPathExtractor({ bucketName: params.bucketName, pathname })} />
 						<For each={data()?.CommonPrefixes}>{(item) => <CardS3Folder item={item} bucketName={params.bucketName} />}</For>
 						<For each={data()?.Contents}>{(item) => <CardS3Item item={item} bucketName={params.bucketName} />}</For>
 					</div>

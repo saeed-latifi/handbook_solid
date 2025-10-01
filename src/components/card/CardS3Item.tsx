@@ -1,12 +1,13 @@
-import { useNavigate, useLocation } from "@solidjs/router";
+import { useNavigate, useLocation, useParams } from "@solidjs/router";
 import { IS3Item } from "~/types/S3";
 import { Match, Switch } from "solid-js";
 import { IconAlert } from "../icons/IconAlert";
 import { IconVideo } from "../icons/IconVideo";
 import { storageUrl } from "~/appConfig";
 import { IconBack } from "../icons/IconBack";
+import { HlsPlayer } from "../HlsPlayer";
 
-export function CardS3Item({ item, bucketName }: { item: IS3Item; bucketName: string }) {
+export function CardS3Item({ item, bucketName, parents }: { item: IS3Item; bucketName: string; parents?: string[] }) {
 	const navigate = useNavigate();
 	const location = useLocation();
 
@@ -27,6 +28,13 @@ export function CardS3Item({ item, bucketName }: { item: IS3Item; bucketName: st
 					<Match when={type === "image"}>
 						<img src={storageUrl + "/" + bucketName + "/" + item.Key} alt="" class="w-full h-full" />
 					</Match>
+
+					<Match when={type === "hls"}>
+						<div class="w-full h-full flex items-center justify-center">
+							<HlsPlayer bucketName={bucketName} parents={parents} />
+						</div>
+					</Match>
+
 					<Match when={type === "video"}>
 						<div class="w-full h-full flex items-center justify-center">
 							<IconVideo class="fill-gray-500 w-full h-full aspect-square max-w-24" />
@@ -50,7 +58,7 @@ export function CardS3Item({ item, bucketName }: { item: IS3Item; bucketName: st
 	);
 }
 
-type IS3ContentType = "image" | "video" | "none" | "back";
+type IS3ContentType = "image" | "video" | "none" | "back" | "hls";
 
 function s3ContentType(key: string): { type: IS3ContentType; name: string } {
 	if (key.endsWith("/")) return { type: "back", name: key.slice(0, -1) };
@@ -59,6 +67,7 @@ function s3ContentType(key: string): { type: IS3ContentType; name: string } {
 
 	if (type === "webp" || type === "jpg" || type === "png") return { name, type: "image" };
 	if (type === "mp4") return { name, type: "video" };
+	if (type === "m3u8") return { name, type: "hls" };
 	return { type: "none", name };
 }
 
