@@ -7,7 +7,7 @@ export function ComponentRecordTwo() {
 	const id = 2;
 	const { data, isLoading, refetch, error, isValidating, isReady, mutateResponse } = useDataRecord<IUserSimple, undefined>({
 		domain: "user",
-		id,
+		id: () => id,
 		fetcher: async (_id) => {
 			await sleep(200);
 			const res: IResponse<IUserSimple, undefined> = {

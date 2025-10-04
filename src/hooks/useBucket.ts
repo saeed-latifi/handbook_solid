@@ -1,12 +1,10 @@
 import { http } from "~/components/http";
-import { IBucket } from "~/types/bucket.type copy";
 import { useDataList } from "./useDataList";
 import { IResponse } from "~/types/response.type";
 import { useDataRecord } from "./useDataRecord";
 import toast from "solid-toast";
 import { arrayPurger } from "~/utils/arrayPurger";
-import { IS3BucketInfo } from "~/types/S3";
-import { createEffect, createMemo, splitProps } from "solid-js";
+import { IBucket, IS3BucketInfo } from "~/types/S3";
 
 export function useBucketList() {
 	const { data, isLoading, response, mutateResponse, mutate } = useDataList({

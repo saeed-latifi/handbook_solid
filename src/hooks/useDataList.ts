@@ -43,8 +43,6 @@ export function useDataList<T = unknown, X = unknown, F extends Record<string, a
 	});
 
 	createEffect(() => {
-		console.log({ filterObject: filterObject() });
-
 		if (isReadyState() && (!listData() || !listData()?.fetchState.initialized)) {
 			executeFetch().catch((error) => {
 				console.error("Fetch failed:", error);
@@ -112,13 +110,6 @@ export function useDataList<T = unknown, X = unknown, F extends Record<string, a
 	const data = createMemo(() => context?.getList<T, X>(domain, key())?.data.data);
 
 	const currentListData = createMemo(() => context?.getList<T, X>(domain, key()));
-
-	createEffect(() => {
-		const list = currentListData();
-		if (list?.data) {
-			console.log("zzzz", list.data.data);
-		}
-	});
 
 	return {
 		domain: context?.getDomain<T, X>(domain),

@@ -3,9 +3,12 @@ import ModalBase from "../modal/modal.base";
 import CardModal from "./CardModal";
 import { IconAddFile } from "../icons/IconAddFile";
 import S3UploadBox from "../S3UploadBox";
+import { IS3BucketInfo } from "~/types/S3";
 
-export function CardS3UploadFile({ bucketName, parents }: { bucketName: string; parents?: string[] }) {
+export function CardS3UploadFile({ bucketName, data }: { bucketName: string; data: IS3BucketInfo }) {
+	const parents = data?.Prefix.split("/").filter((item) => item !== "");
 	const { onClear, onModal } = useModal();
+
 	function onClick() {
 		onModal(
 			<ModalBase onClear={onClear}>

@@ -1,5 +1,4 @@
 import { useBucketList } from "~/hooks/useBucket";
-import { IBucket } from "~/types/bucket.type copy";
 import { IconBucket } from "../icons/IconBucket";
 import IconDelete from "../icons/IconDelete";
 import { useNavigate } from "@solidjs/router";
@@ -7,7 +6,7 @@ import { useModal } from "~/context/modal.context";
 import ModalBase from "../modal/modal.base";
 import CardModal from "./CardModal";
 import { Button } from "../button/Button";
-import { sleep } from "~/utils/sleep";
+import { IBucket } from "~/types/S3";
 
 export function CardBucket({ bucket }: { bucket: IBucket }) {
 	const { deleteBucket } = useBucketList();

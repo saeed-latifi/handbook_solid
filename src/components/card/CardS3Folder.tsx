@@ -1,5 +1,5 @@
-import { useLocation, useNavigate, useParams } from "@solidjs/router";
-import { IS3Prefix } from "~/types/S3";
+import { useNavigate } from "@solidjs/router";
+import { IS3BucketInfo, IS3Prefix } from "~/types/S3";
 import { IconFolder } from "../icons/IconFolder";
 import { useModal } from "~/context/modal.context";
 import ModalBase from "../modal/modal.base";
@@ -8,14 +8,18 @@ import { Button } from "../button/Button";
 import IconDelete from "../icons/IconDelete";
 import { http } from "../http";
 import { IResponse } from "~/types/response.type";
-import { useBucketInfo } from "~/hooks/useBucket";
 
-export function CardS3Folder({ item, bucketName }: { item: IS3Prefix; bucketName: string }) {
+type props = {
+	item: IS3Prefix;
+	bucketName: string;
+	data: IS3BucketInfo;
+	mutate: (newData: Partial<IS3BucketInfo>) => Promise<void>;
+};
+
+export function CardS3Folder({ item, bucketName, data, mutate }: props) {
+	const parents = data?.Prefix.split("/").filter((item) => item !== "");
+
 	const navigate = useNavigate();
-	const params = useParams();
-
-	const { pathname } = useLocation();
-	const { data, isLoading, mutateValue } = useBucketInfo({ name: () => params.bucketName, prefix: () => params.contentPath });
 
 	function onClick() {
 		navigate(`/storage/${bucketName}/${item.Prefix}`);
@@ -51,22 +55,19 @@ export function CardS3Folder({ item, bucketName }: { item: IS3Prefix; bucketName
 	}
 
 	async function onDeleteFolder() {
-		const parents = extractPathSegments({ bucketName, pathname });
-		if (!data()) return;
 		const { data: res } = await http.post<IResponse<{ bucketName: string; folderName: string }>>("/storage/folder/delete", { bucketName, folderName: getLastWord(item.Prefix), parents });
 
 		if (!res.data) return;
-		const CommonPrefixes: IS3Prefix[] = data()?.CommonPrefixes?.filter((i) => i.Prefix !== item.Prefix) ?? [];
+		const CommonPrefixes: IS3Prefix[] = data.CommonPrefixes?.filter((i) => i.Prefix !== item.Prefix) ?? [];
 
-		console.log({ CommonPrefixes });
-		await mutateValue({ CommonPrefixes });
+		await mutate({ CommonPrefixes });
 		onClear();
 	}
 
 	return (
 		<div onClick={onClick} class="bg-white rounded-lg aspect-square w-full flex flex-col border border-border relative items-center justify-center overflow-hidden">
 			<div class="flex flex-1 overflow-hidden">
-				<div class="w-full h-full flex items-center justify-center">
+				<div class="w-full h-full flex items-center justify-center clicker">
 					<IconFolder class="fill-gray-500 w-full h-full aspect-square max-w-24" />
 				</div>
 			</div>
@@ -87,17 +88,4 @@ export function CardS3Folder({ item, bucketName }: { item: IS3Prefix; bucketName
 
 function getLastWord(str: string) {
 	return str.split("/").filter(Boolean).pop() || "";
-}
-
-function extractPathSegments({ bucketName, pathname }: { pathname: string; bucketName: string }) {
-	// Remove leading/trailing slashes and split
-	const segments = pathname.replace(/^\/+|\/+$/g, "").split("/");
-
-	// Find FIRST occurrence of base
-	const baseIndex = segments.indexOf(bucketName);
-
-	if (baseIndex === -1) return [];
-
-	// Return segments after first base occurrence
-	return segments.slice(baseIndex + 1).filter((segment) => segment !== "");
 }

@@ -23,7 +23,9 @@ export function ComponentListReady() {
 			return res;
 		},
 		isReady: () => true,
-		filters: { name: "filter" },
+		filters: () => ({
+			name: "filter",
+		}),
 	});
 
 	function mutateListA() {

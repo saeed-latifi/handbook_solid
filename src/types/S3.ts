@@ -21,3 +21,8 @@ export interface IS3BucketInfo {
 		IsPublic: boolean;
 	};
 }
+
+export type IBucket = {
+	Name: string;
+	CreationDate: string;
+};

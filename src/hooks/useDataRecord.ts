@@ -12,8 +12,6 @@ interface UseRecordOptions<T, X> {
 const onGoingRecordFetch = new Map<string, Promise<any>>();
 
 export function useDataRecord<T = unknown, X = unknown>({ domain, fetcher, id, isReady = () => true }: UseRecordOptions<T, X>) {
-	console.log({ id: id() });
-
 	const context = useContext(DomainContext);
 	if (!context) throw new Error("useRecord must be used within DomainProvider");
 
@@ -41,8 +39,6 @@ export function useDataRecord<T = unknown, X = unknown>({ domain, fetcher, id, i
 	const canAct = createMemo(() => isReadyState() && !recordData()?.fetchState?.isLoading && !recordData()?.fetchState?.isValidating);
 
 	createEffect(() => {
-		console.log("mmm", id());
-
 		if (canAct() && !recordData()?.fetchState?.initialized) executeFetch().catch((error) => console.error("Fetch failed:", error));
 	});
 
@@ -59,8 +55,6 @@ export function useDataRecord<T = unknown, X = unknown>({ domain, fetcher, id, i
 			onGoingRecordFetch.set(fetchId, fetchPromise);
 
 			const response = await fetchPromise;
-
-			console.log({ response });
 
 			context?.updateRecordResponse<T, X>({ domain, data: response, fetchState: { isLoading: false, isValidating: false, error: undefined }, id: id() });
 
@@ -120,7 +114,6 @@ export function useDataRecord<T = unknown, X = unknown>({ domain, fetcher, id, i
 	) {
 		try {
 			if (!updater || !canAct()) return;
-			console.log("mutate");
 
 			const currentResponse = context?.getRecord<T, X>({ domain, id: id() })?.data;
 
@@ -156,10 +149,6 @@ export function useDataRecord<T = unknown, X = unknown>({ domain, fetcher, id, i
 	}
 
 	const data = createMemo(() => recordData()?.data?.data);
-
-	// createEffect(() => {
-	// 	console.log("vvvvv", data());
-	// });
 
 	return {
 		domain: context?.getDomain<T, X>(domain),

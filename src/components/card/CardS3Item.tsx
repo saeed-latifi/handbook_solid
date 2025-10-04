@@ -1,5 +1,5 @@
-import { useNavigate, useLocation, useParams } from "@solidjs/router";
-import { IS3Item } from "~/types/S3";
+import { useNavigate, useLocation } from "@solidjs/router";
+import { IS3BucketInfo, IS3Item } from "~/types/S3";
 import { Match, Switch } from "solid-js";
 import { IconAlert } from "../icons/IconAlert";
 import { IconVideo } from "../icons/IconVideo";
@@ -7,7 +7,15 @@ import { storageUrl } from "~/appConfig";
 import { IconBack } from "../icons/IconBack";
 import { HlsPlayer } from "../HlsPlayer";
 
-export function CardS3Item({ item, bucketName, parents }: { item: IS3Item; bucketName: string; parents?: string[] }) {
+type props = {
+	bucketName: string;
+	data: IS3BucketInfo;
+	item: IS3Item;
+};
+
+export function CardS3Item({ item, bucketName, data }: props) {
+	const parents = data?.Prefix.split("/").filter((item) => item !== "");
+
 	const navigate = useNavigate();
 	const location = useLocation();
 
@@ -85,6 +93,7 @@ function getLastWord(str: string) {
 	return str.split("/").filter(Boolean).pop() || "";
 }
 
+// TODO fix by parent
 function goBackOneLevel(url: string) {
 	// Remove trailing slashes and split by '/'
 	const parts = url.replace(/\/+$/, "").split("/");
