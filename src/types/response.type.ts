@@ -26,7 +26,6 @@ export interface IResponse<T = undefined, X = undefined> {
 }
 
 export type IDomainNames = "user" | "lesson" | "some" | "buckets";
-export type IDomainSimpleNames = "settings" | "account";
 
 export interface IFetchState {
 	isLoading: boolean;
@@ -51,6 +50,7 @@ export interface IDomainStore<T, X> {
 	records: Record<string | number, IRecordData<T, X>>;
 }
 
+export type IDomainSimpleNames = "settings" | "account";
 export type ISimpleStore<T, X> = {
 	[key in IDomainSimpleNames]?: IRecordData<T, X>;
 };

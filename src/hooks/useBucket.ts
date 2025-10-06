@@ -68,8 +68,6 @@ export function useBucketInfo({ name, prefix }: { name: () => string; prefix: ()
 		domain: "buckets",
 		id: () => name() + "/" + (prefix?.() ?? ""),
 		fetcher: async () => {
-			console.log({ x: name(), y: prefix?.() });
-
 			const { data } = await http.get(`/storage/bucket/detail/${name()}`, { params: { prefix: prefix() ? prefix() + "/" : "" } });
 			return data as IResponse<IS3BucketInfo>;
 		},

@@ -1,38 +1,42 @@
 import { createEffect, createMemo, createSignal, useContext } from "solid-js";
-import { DomainContext, listHandler } from "~/context/domainContext";
-import { IDomainNames, IListData, IResponse, ResponseState } from "~/types/response.type";
+import { DomainContext } from "~/context/domainContext";
+import { IDomainNames, IResponse } from "~/types/response.type";
 import { createDomainListKey, keyGenerator } from "~/utils/keyGenerator";
 
 interface UseListOptions<T, X, F extends Record<string, any> = Record<string, any>> {
 	filters?: () => F;
-	isReady?: boolean | (() => boolean) | (() => Promise<boolean>);
+	isReady?: (() => boolean) | (() => Promise<boolean>);
 	fetcher: (filters: Partial<F>) => Promise<IResponse<T[], X>> | Promise<IResponse<T[], X>>;
 	domain: IDomainNames;
 }
 
 const globalListFetchMap = new Map<string, Promise<any>>();
 
-export function useDataList<T = unknown, X = unknown, F extends Record<string, any> = Record<string, any>>({ domain, fetcher, filters, isReady = true }: UseListOptions<T, X, F>) {
+export function useDataList<T = unknown, X = unknown, F extends Record<string, any> = Record<string, any>>({ domain, fetcher, filters, isReady = () => true }: UseListOptions<T, X, F>) {
+	type responseType = IResponse<T[], X>;
+
 	const context = useContext(DomainContext);
 	if (!context) throw new Error("useList must be used within DomainProvider");
 
-	// const filterObject = keyGenerator(filters) as Partial<F>;
-	const filterObject = createMemo(() => keyGenerator(filters?.()) as Partial<F>);
-
 	const key = createMemo(() => createDomainListKey(domain, filters?.()));
-
+	const filterObject = createMemo(() => keyGenerator(filters?.()) as Partial<F>);
 	const listData = createMemo(() => context?.getList<T, X>(domain, key()));
+	const data = createMemo(() => listData()?.data.data);
 
-	const [isReadyState, setIsReadyState] = createSignal(typeof isReady === "boolean" ? isReady : isReady.constructor.name === "AsyncFunction" ? false : isReady());
-
+	const [isReadyState, setIsReadyState] = createSignal(isReady.constructor.name === "AsyncFunction" ? false : isReady());
 	const canAct = createMemo(() => isReadyState() && !listData()?.fetchState?.isLoading && !listData()?.fetchState?.isValidating);
 
-	createEffect(async () => {
-		if (typeof isReady === "boolean") {
-			setIsReadyState(isReady);
-			return;
-		}
+	// Reactive computed values for state
+	const isLoading = createMemo(
+		() => !listData()?.fetchState.initialized || listData()?.fetchState.isLoading || false
+		// TODO  undefined, { equals: (prev, next) => prev === next }
+	);
+	const isValidating = createMemo(() => listData()?.fetchState.isValidating || false);
+	const error = createMemo(() => listData()?.fetchState.error);
+	const isInit = createMemo(() => listData()?.fetchState.initialized || false);
+	const response = createMemo(() => listData()?.data);
 
+	createEffect(async () => {
 		try {
 			const result = await isReady();
 			setIsReadyState(result);
@@ -43,15 +47,11 @@ export function useDataList<T = unknown, X = unknown, F extends Record<string, a
 	});
 
 	createEffect(() => {
-		if (isReadyState() && (!listData() || !listData()?.fetchState.initialized)) {
-			executeFetch().catch((error) => {
-				console.error("Fetch failed:", error);
-			});
-		}
+		if (isReadyState() && (!listData() || !listData()?.fetchState.initialized)) executeFetch();
 	});
 
-	async function executeFetch(): Promise<IResponse<T[], X>> {
-		if (globalListFetchMap.has(key())) return (await globalListFetchMap.get(key())!) as IResponse<T[], X>;
+	async function executeFetch() {
+		if (globalListFetchMap.has(key())) return (await globalListFetchMap.get(key())!) as responseType;
 
 		context?.updateListState({ domain, key: key(), fetchState: { isLoading: true, isValidating: false, error: undefined } });
 
@@ -64,17 +64,14 @@ export function useDataList<T = unknown, X = unknown, F extends Record<string, a
 
 			return response;
 		} catch (error) {
-			const errorResponse: IResponse<T[], X> = { responseState: "ServerError" };
-
+			const errorResponse: responseType = { responseState: "ServerError" };
 			context?.updateListResponse<T, X>({ domain, key: key(), data: errorResponse, fetchState: { isLoading: false, isValidating: false, error: error } });
-
-			throw error;
 		} finally {
 			globalListFetchMap.delete(key());
 		}
 	}
 
-	async function mutate(updater: ((currentData: T[] | undefined) => T[] | Promise<T[] | undefined> | undefined) | T[] | undefined) {
+	async function mutate(updater?: T[] | ((currentData?: T[]) => T[] | Promise<T[] | undefined> | undefined)) {
 		if (!updater || !canAct()) return;
 
 		const existingList = context?.getList<T, X>(domain, key());
@@ -90,7 +87,7 @@ export function useDataList<T = unknown, X = unknown, F extends Record<string, a
 		} else context?.updateListValue({ domain, key: key(), data: updater });
 	}
 
-	async function mutateResponse(updater: ((currentData: IResponse<T[], X> | undefined) => IResponse<T[], X> | Promise<IResponse<T[], X> | undefined> | undefined) | IResponse<T[], X> | undefined) {
+	async function mutateResponse(updater?: ((currentData?: responseType) => responseType | Promise<responseType | undefined>) | undefined) {
 		if (!updater || !canAct()) return;
 
 		const existingList = context?.getList<T, X>(domain, key());
@@ -107,20 +104,16 @@ export function useDataList<T = unknown, X = unknown, F extends Record<string, a
 
 	const refetch = () => executeFetch();
 
-	const data = createMemo(() => context?.getList<T, X>(domain, key())?.data.data);
-
-	const currentListData = createMemo(() => context?.getList<T, X>(domain, key()));
-
 	return {
 		domain: context?.getDomain<T, X>(domain),
 
 		data,
-		response: () => listData()?.data,
+		response,
 
-		isLoading: () => !listData()?.fetchState.initialized || listData()?.fetchState.isLoading || false,
-		isValidating: () => listData()?.fetchState.isValidating || false,
-		error: () => listData()?.fetchState.error,
-		isInit: () => listData()?.fetchState.initialized || false,
+		isLoading,
+		isValidating,
+		error,
+		isInit,
 
 		isReady: isReadyState,
 

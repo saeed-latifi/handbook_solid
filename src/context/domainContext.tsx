@@ -3,7 +3,7 @@ import { createStore } from "solid-js/store";
 import { IDomainNames, IResponse, IFetchState, IListData, IRecordData, IDomainStore, ResponseState } from "~/types/response.type";
 
 interface DomainContextValue {
-	domains: { [K in IDomainNames]?: IDomainStore<unknown, unknown> };
+	get domains(): { [K in IDomainNames]?: IDomainStore<unknown, unknown> };
 	getDomain: <T, X>(domain: IDomainNames) => IDomainStore<T, X>;
 	getList: <T, X>(domain: IDomainNames, key: string) => IListData<T, X> | undefined;
 	getRecord: <T, X>(props: { domain: IDomainNames; id: string | number }) => IRecordData<T, X> | undefined;
@@ -39,12 +39,12 @@ export function recordHandler<T, X>({ data, fetchState, initialized = true }: { 
 }
 
 export function DomainProvider(props: { children: any }) {
-	const [domains, onDomain] = createStore<AllDomains>({});
+	const [domains, setDomains] = createStore<AllDomains>({});
 
 	function getDomain<T, X>(name: IDomainNames): IDomainStore<T, X> {
 		if (domains[name]) return domains[name] as IDomainStore<T, X>;
 		const emptyDomain = createEmptyDomain<T, X>(name);
-		onDomain(name, emptyDomain);
+		setDomains(name, emptyDomain);
 		return emptyDomain;
 	}
 
@@ -57,44 +57,52 @@ export function DomainProvider(props: { children: any }) {
 	}
 
 	function updateListResponse<T, X>({ domain, key, data, fetchState }: { domain: IDomainNames; key: string; data: IResponse<T[], X>; fetchState: Partial<IFetchState> }) {
-		if (!domains[domain]) onDomain(domain, { ...createEmptyDomain<T, X>(domain), lists: { [key]: listHandler({ data, fetchState }) } });
-		else onDomain(domain, "lists", key, listHandler({ data, fetchState }));
+		if (!domains[domain]) setDomains(domain, { ...createEmptyDomain<T, X>(domain), lists: { [key]: listHandler({ data, fetchState }) } });
+		else setDomains(domain, "lists", key, listHandler({ data, fetchState }));
 	}
 
-	function updateListState<T, X>({ domain, key, fetchState }: { domain: IDomainNames; key: string; fetchState: Partial<IFetchState> }) {
-		if (!domains[domain]) onDomain(domain, { ...createEmptyDomain<T, X>(domain), lists: { [key]: listHandler({ data: { responseState: ResponseState.Success }, fetchState, initialized: false }) } });
-		else if (!domains[domain].lists[key]) onDomain(domain, "lists", key, listHandler({ data: { responseState: ResponseState.Success }, fetchState, initialized: false }));
-		else onDomain(domain, "lists", key, "fetchState", (prev) => ({ ...prev, ...fetchState }));
+	// TODO batch function updateListResponseX<T, X>({ domain, key, data, fetchState }: { domain: IDomainNames; key: string; data: IResponse<T[], X>; fetchState: Partial<IFetchState> }) {
+	// 	batch(() => {
+	// 		if (!domains[domain]) setDomains(domain, { ...createEmptyDomain<T, X>(domain), lists: { [key]: listHandler({ data, fetchState }) } });
+	// 		else setDomains(domain, "lists", key, listHandler({ data, fetchState }));
+	// 	});
+	// }
+
+	function updateListState({ domain, key, fetchState }: { domain: IDomainNames; key: string; fetchState: Partial<IFetchState> }) {
+		if (!domains[domain]) setDomains(domain, { ...createEmptyDomain(domain), lists: { [key]: listHandler({ data: { responseState: ResponseState.Success }, fetchState, initialized: false }) } });
+		else if (!domains[domain]!.lists[key]) setDomains(domain, "lists", key, listHandler({ data: { responseState: ResponseState.Success }, fetchState, initialized: false }));
+		else setDomains(domain, "lists", key, "fetchState", (prev) => ({ ...prev, ...fetchState }));
 	}
 
 	function updateListValue<T>({ domain, key, data }: { domain: IDomainNames; key: string; data: T[] }) {
 		if (!domains[domain]?.lists[key]?.data?.data) return;
-
-		onDomain(domain, "lists", key, "data", "data", data);
+		setDomains(domain, "lists", key, "data", "data", data);
 	}
 
 	function updateRecordResponse<T, X>({ data, domain, fetchState, id }: { domain: IDomainNames; id: string | number; data: IResponse<T, X>; fetchState: Partial<IFetchState> }) {
-		if (!domains[domain]) onDomain(domain, { ...createEmptyDomain<T, X>(domain), records: { [id]: recordHandler({ data, fetchState }) } });
-		else onDomain(domain, "records", id, recordHandler({ data, fetchState }));
+		if (!domains[domain]) setDomains(domain, { ...createEmptyDomain<T, X>(domain), records: { [id]: recordHandler({ data, fetchState }) } });
+		else setDomains(domain, "records", id, recordHandler({ data, fetchState }));
 	}
 
-	function updateRecordFetchState<T, X>({ domain, fetchState, id }: { domain: IDomainNames; id: string | number; fetchState: Partial<IFetchState> }) {
-		if (!domains[domain]) onDomain(domain, { ...createEmptyDomain<T, X>(domain), records: { [id]: listHandler({ data: { responseState: ResponseState.Success }, fetchState, initialized: false }) } });
-		else if (!domains[domain].records[id]) onDomain(domain, "records", id, listHandler({ data: { responseState: ResponseState.Success }, fetchState, initialized: false }));
-		else onDomain(domain, "records", id, "fetchState", (prev) => ({ ...prev, ...fetchState }));
+	function updateRecordFetchState({ domain, fetchState, id }: { domain: IDomainNames; id: string | number; fetchState: Partial<IFetchState> }) {
+		if (!domains[domain]) setDomains(domain, { ...createEmptyDomain(domain), records: { [id]: recordHandler({ data: { responseState: ResponseState.Success }, fetchState, initialized: false }) } });
+		else if (!domains[domain]!.records[id]) setDomains(domain, "records", id, recordHandler({ data: { responseState: ResponseState.Success }, fetchState, initialized: false }));
+		else setDomains(domain, "records", id, "fetchState", (prev) => ({ ...prev, ...fetchState }));
 	}
 
 	function updateRecordValue<T>({ domain, data, id }: { domain: IDomainNames; data: Partial<T>; id: string | number }) {
 		if (!domains[domain]?.records[id]?.data?.data) return;
 
-		onDomain(domain, "records", id, "data", "data", (prev: T) => ({
-			...prev,
-			...data,
-		}));
+		setDomains(domain, "records", id, "data", "data", (prev: T) => ({ ...prev, ...data }));
 	}
 
+	// Reactive context value with getters
 	const contextValue: DomainContextValue = {
-		domains,
+		// Reactive getter for domains - always returns current state
+		get domains() {
+			return domains;
+		},
+
 		getDomain,
 		getList,
 		getRecord,
