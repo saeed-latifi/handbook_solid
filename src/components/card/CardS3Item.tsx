@@ -6,6 +6,8 @@ import { IconVideo } from "../icons/IconVideo";
 import { storageUrl } from "~/appConfig";
 import { IconBack } from "../icons/IconBack";
 import { HlsPlayer } from "../HlsPlayer";
+// import { IconLock } from "../icons/IconLock";
+import { http } from "../http";
 
 type props = {
 	bucketName: string;
@@ -25,8 +27,14 @@ export function CardS3Item({ item, bucketName, data }: props) {
 		if (type === "back") navigate(goBackOneLevel(location.pathname));
 	}
 
+	async function onPrivateObject() {
+		const { data } = await http.put("/storage/file/private", { bucketName, key: item.Key });
+
+		console.log(data);
+	}
+
 	return (
-		<button
+		<div
 			onClick={onClick}
 			//  onClick={() => navigate(`/storage/${item.Key}`)}
 			class="bg-white rounded-lg aspect-square w-full flex flex-col border border-border relative items-center justify-center overflow-hidden"
@@ -39,7 +47,7 @@ export function CardS3Item({ item, bucketName, data }: props) {
 
 					<Match when={type === "hls"}>
 						<div class="w-full h-full flex items-center justify-center">
-							<HlsPlayer bucketName={bucketName} parents={parents} />
+							<HlsPlayer bucketName={bucketName} item={item} />
 						</div>
 					</Match>
 
@@ -62,7 +70,17 @@ export function CardS3Item({ item, bucketName, data }: props) {
 				</Switch>
 			</div>
 			<p class="w-full bg-gray-200 px-2 py-0.5 font-peyda-bold text-sm truncate min-h-fit">{type === "back" ? "بازگشت" : type === "none" ? getLastWord(item.Key) : getLastWord(name)}</p>
-		</button>
+
+			{/* <button
+				class="flex items-center justify-center bg-white rounded-full border border-red-600 p-1 absolute top-2 left-2"
+				onClick={async (e) => {
+					e.stopPropagation();
+					onPrivateObject();
+				}}
+			>
+				<IconLock class="fill-red-600 w-5 h-5 min-w-5" />
+			</button> */}
+		</div>
 	);
 }
 
