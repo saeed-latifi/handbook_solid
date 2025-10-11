@@ -14,11 +14,6 @@ export function AuthChecker(props: { children: JSXElement }) {
 
 	const { data, isLoading, isValidating, response, isReady } = useAccount();
 
-	createEffect(() => {
-		const a = data();
-		console.log("xxx", a ? JSON.parse(JSON.stringify(a)) : "");
-	});
-
 	return (
 		<Switch fallback={<div class="bg-green-400 w-full p-8 flex flex-col in-checked: justify-center">initializing ...</div>}>
 			<Match when={!isReady() || isLoading() || isValidating()}>

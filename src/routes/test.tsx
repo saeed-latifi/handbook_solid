@@ -9,13 +9,23 @@ import { ComponentListReady } from "~/components/test/ComponentListReady";
 import { ComponentListError } from "~/components/test/ComponentListError";
 import { ComponentSimple } from "~/components/test/ComponentSimple";
 import { keyGenerator } from "~/utils/keyGenerator";
+import { ComponentCash, ComponentCashMutate } from "~/components/test/ComponentChashy";
+import { CC, CCU } from "~/components/test/CC";
 
 export default function TestPage() {
 	const { response, data, onChange } = useAccount();
 
 	return (
 		<div class="w-full flex flex-col gap-4 p-4">
-			<Input
+			<CC />
+			<CC />
+			<CC />
+			<CCU />
+			{/* <ComponentCash />
+			<ComponentCash />
+
+			<ComponentCashMutate /> */}
+			{/* <Input
 				id="password"
 				icon={<IconLock class="w-5 h-5" />}
 				name="password"
@@ -39,7 +49,7 @@ export default function TestPage() {
 
 			<p>{JSON.stringify(keyGenerator({ arr: [null, undefined, NaN, ""] }))}</p>
 			<p>{JSON.stringify(keyGenerator({ a: null, b: undefined, c: NaN, d: "", e: [] }))}</p>
-			<p>{JSON.stringify(keyGenerator({ b: 5, a: 1, c: { b: 3, a: 1, c: [] }, d: {} }))}</p>
+			<p>{JSON.stringify(keyGenerator({ b: 5, a: 1, c: { b: 3, a: 1, c: [] }, d: {} }))}</p> */}
 		</div>
 	);
 }
