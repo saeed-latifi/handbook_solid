@@ -45,26 +45,41 @@ const defaultFetchState: IFetchState = {
 	initialized: false,
 	error: undefined,
 };
-
 export function useGStore<T extends object, F extends Record<string, any> = Record<string, any>>({ domain, fetcher, filters, isReady = () => true, storeType = "base" }: IStoreArgs<T, F>) {
 	const purgedFilters = createMemo(() => keyGenerator(filters?.()) as Partial<F>);
 	const key = createMemo(() => JSON.stringify(purgedFilters() || {}));
 
-	if (!gStore[domain]) gStore[domain] = { freeze: false };
-	if (!gStore[domain][storeType]) gStore[domain][storeType] = { base: {}, freeze: false };
+	const storeSection = createMemo(() => {
+		if (!gStore[domain]) gStore[domain] = { freeze: false };
+		if (!gStore[domain][storeType]) gStore[domain][storeType] = { base: {}, freeze: false };
 
-	if (!gStore[domain][storeType].base[key()]) {
-		gStore[domain][storeType].base[key()] = {
-			data: createStore(),
-			fetchState: createStore(defaultFetchState),
+		const currentKey = key();
+		if (!gStore[domain][storeType].base[currentKey]) {
+			gStore[domain][storeType].base[currentKey] = {
+				data: createStore<T>({} as T),
+				fetchState: createStore<IFetchState>(defaultFetchState),
+			};
+		}
+
+		// return gStore[domain][storeType].base[currentKey];
+
+		const store = gStore[domain][storeType].base[currentKey];
+		return {
+			data: store.data[0],
+			setData: store.data[1],
+			fetchState: store.fetchState[0],
+			setFetchState: store.fetchState[1],
 		};
-	}
+	});
 
-	const [data, setData]: [get: T, set: SetStoreFunction<T>] = gStore[domain][storeType].base[key()]?.data;
-	const [fetchState, setFetchState] = gStore[domain][storeType].base[key()]?.fetchState;
+	// Reactively access data and fetchState - these MUST be memos too
+	// const data = createMemo(() => storeSection().data);
+	// const setData = createMemo(() => storeSection().setData);
+	// const fetchState = createMemo(() => storeSection().fetchState);
+	// const setFetchState = createMemo(() => storeSection().setFetchState);
 
 	const [isReadyState, setReady] = createSignal(isReady.constructor.name === "AsyncFunction" ? false : isReady());
-	const canAct = createMemo(() => isReadyState() && !fetchState.isLoading && !fetchState.isValidating);
+	const canAct = createMemo(() => isReadyState() && !storeSection().fetchState.isLoading && !storeSection().fetchState.isValidating);
 
 	createEffect(async () => {
 		try {
@@ -74,10 +89,18 @@ export function useGStore<T extends object, F extends Record<string, any> = Reco
 		}
 	});
 
+	// This effect will now properly react to key changes
 	createEffect(() => {
-		console.log("ppppp", data);
+		// const currentKey = key();
+		const currentData = storeSection().data[0];
+		const currentFetchState = storeSection().fetchState;
+		const ready = isReadyState();
 
-		if (isReadyState() && (!data || !fetchState.initialized)) executeFetch();
+		console.log("Current key:", key(), "Data:", currentData);
+
+		if (ready && (!currentData || Object.keys(currentData).length === 0 || !currentFetchState.initialized)) {
+			executeFetch();
+		}
 	});
 
 	async function executeFetch() {
@@ -87,37 +110,44 @@ export function useGStore<T extends object, F extends Record<string, any> = Reco
 		console.log("fetch ", fetchKey);
 
 		batch(() => {
-			setFetchState("isLoading", true);
-			setFetchState("initialized", true);
+			storeSection().setFetchState("isLoading", true);
+			storeSection().setFetchState("initialized", true);
 		});
 
 		try {
 			const promise = fetcher(purgedFilters());
 			globalFetchMap.set(fetchKey, promise);
 			const res = await promise;
-			setData(res);
-			batch(() => {
-				setFetchState("isLoading", false);
-				setFetchState("error", undefined);
-			});
 
+			console.log("xz 1", JSON.stringify(storeSection().data[0]));
+			storeSection().setData(res);
+			console.log("xz 2", JSON.stringify(storeSection().data[0]));
+
+			batch(() => {
+				storeSection().setFetchState("isLoading", false);
+				storeSection().setFetchState("error", undefined);
+			});
 			return res;
 		} catch (error) {
 			batch(() => {
-				setFetchState("isLoading", false);
-				setFetchState("error", error);
+				storeSection().setFetchState("isLoading", false);
+				storeSection().setFetchState("error", error);
 			});
 		} finally {
 			globalFetchMap.delete(fetchKey);
 		}
 	}
 
+	const mutate: SetStoreFunction<T> = ((...args: any[]) => {
+		if (!canAct()) return;
+		return (storeSection().setData as any)(...args);
+	}) as SetStoreFunction<T>;
+
 	return {
 		key,
-		data,
-		fetchState,
-
+		data: () => storeSection().data,
+		fetchState: () => storeSection().fetchState,
 		isReady: isReadyState,
-		mutate: canAct() ? setData : undefined,
+		mutate,
 	};
 }
