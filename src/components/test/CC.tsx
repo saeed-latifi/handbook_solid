@@ -70,7 +70,7 @@ export function CCU() {
 		<div class="flex flex-col gap-4 w-full">
 			<Input value={value()} onInput={(e) => setValue(e.target.value)} type="text" />
 
-			<Button onClick={() => mutate("id", value())}>mutate value</Button>
+			<Button onClick={() => mutate("name", value())}>mutate value</Button>
 
 			<Button onClick={() => setParams?.({ x: value() })}>mutate filter</Button>
 
