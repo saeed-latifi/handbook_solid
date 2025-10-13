@@ -9,18 +9,22 @@ import { ComponentListReady } from "~/components/test/ComponentListReady";
 import { ComponentListError } from "~/components/test/ComponentListError";
 import { ComponentSimple } from "~/components/test/ComponentSimple";
 import { keyGenerator } from "~/utils/keyGenerator";
-import { ComponentCash, ComponentCashMutate } from "~/components/test/ComponentChashy";
-import { CC, CCU } from "~/components/test/CC";
+import { ShowUser, MutateUser } from "~/components/test/CC";
+import { CCInfinite } from "~/components/test/CCInfinite";
+import { MutateList, ShowList } from "~/components/test/CCList";
 
 export default function TestPage() {
 	const { response, data, onChange } = useAccount();
 
 	return (
 		<div class="w-full flex flex-col gap-4 p-4">
-			<CC />
-			<CC />
-			<CC />
-			<CCU />
+			{/* <ShowUser /> */}
+			{/* <ShowUser />
+			<ShowUser />
+			<MutateUser /> */}
+			<CCInfinite />
+			{/* <ShowList /> */}
+			{/* <MutateList /> */}
 			{/* <ComponentCash />
 			<ComponentCash />
 

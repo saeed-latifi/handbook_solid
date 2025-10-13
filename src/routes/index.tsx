@@ -1,6 +1,7 @@
 import { createSignal, For, Show } from "solid-js";
 import { Button } from "~/components/button/Button";
 import { Input } from "~/components/form/Input";
+import { CCInfinite } from "~/components/test/CCInfinite";
 import { useDataList } from "~/hooks/useDataList";
 
 export default function Home() {
@@ -17,6 +18,7 @@ export default function Home() {
 	});
 	return (
 		<div class="w-full flex flex-col gap-4 p-4">
+			{/* <CCInfinite /> */}
 			<a href="/storage" class="w-full flex items-center justify-center text-white fill-white px-4 py-1 rounded-md bg-indigo-950">
 				storage
 			</a>

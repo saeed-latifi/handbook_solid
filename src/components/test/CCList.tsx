@@ -1,4 +1,4 @@
-import { createSignal, Match, Switch } from "solid-js";
+import { createEffect, createSignal, For, Match, Switch } from "solid-js";
 import { sleep } from "~/utils/sleep";
 import { Button } from "../button/Button";
 import { Input } from "../form/Input";
@@ -8,23 +8,30 @@ import { useBarnRecord } from "~/hooks/useBarnRecord";
 
 function useUser({ id }: { id: () => string }) {
 	const { key, data, mutate, dataState, isReady } = useBarnRecord({
-		domain: "user",
+		domain: "userX",
 		isReady: async () => {
 			await sleep(700);
 			return true;
 		},
 		fetcher: async ({ id }) => {
 			await sleep(3000);
-			return { id, name: "the user name" };
+			return [
+				{ id: 1, name: "user 1" },
+				{ id: 2, name: "user 2" },
+			];
 		},
 		filters: () => ({ id: id() }),
 		devLog: true,
 	});
 
+	createEffect(() => {
+		console.log("fffff", data()[0]?.id);
+	});
+
 	return { key, data, mutate, dataState, isReady };
 }
 
-export function ShowUser() {
+export function ShowList() {
 	const [params, setParams] = useSearchParams();
 	const { data, dataState, isReady, key, mutate } = useUser({ id: () => params.x?.toString() ?? "" });
 
@@ -47,7 +54,7 @@ export function ShowUser() {
 			</Match>
 
 			<Match when={data()}>
-				<div class="px-6 py-2 rounded-full flex items-center justify-center bg-yellow-100">{JSON.stringify(data())}</div>
+				<For each={data()}>{(item) => <div class="px-6 py-2 rounded-full flex items-center justify-center bg-yellow-100">{item.name}</div>}</For>
 			</Match>
 
 			<Match when={true}>
@@ -57,21 +64,21 @@ export function ShowUser() {
 	);
 }
 
-export function MutateUser() {
+export function MutateList() {
 	const [params, setParams] = useSearchParams();
 
 	const [value, setValue] = createSignal("");
-	const { key, mutate } = useUser({ id: () => params.x?.toString() ?? "" });
+	const { key, mutate, data } = useUser({ id: () => params.x?.toString() ?? "" });
 
 	return (
 		<div class="flex flex-col gap-4 w-full">
 			<Input value={value()} onInput={(e) => setValue(e.target.value)} type="text" />
 
-			<Button onClick={() => mutate("name", value())}>mutate value</Button>
+			<Button onClick={() => mutate((p) => [...p, { id: p.length + 1, name: p.length.toString() }])}>mutate value</Button>
 
 			<Button onClick={() => setParams?.({ x: value() })}>mutate filter</Button>
 
-			<div class="px-6 py-2 rounded-full flex items-center justify-center bg-indigo-400">{key()}</div>
+			<div class="px-6 py-2 rounded-full flex items-center justify-center bg-indigo-600 text-white">{JSON.stringify(data())}</div>
 		</div>
 	);
 }
