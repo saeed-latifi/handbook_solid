@@ -61,15 +61,16 @@ export function MutateUser() {
 	const [params, setParams] = useSearchParams();
 
 	const [value, setValue] = createSignal("");
-	const { key, mutate } = useUser({ id: () => params.x?.toString() ?? "" });
+	const { key, mutate, data } = useUser({ id: () => params.x?.toString() ?? "" });
 
 	return (
 		<div class="flex flex-col gap-4 w-full">
-			<Input value={value()} onInput={(e) => setValue(e.target.value)} type="text" />
+			<Input label="independent input" value={value()} onInput={(e) => setValue(e.target.value)} type="text" />
+			<Input label="sync input" value={data().name} onInput={(e) => mutate("name", e.target.value)} type="text" />
 
-			<Button onClick={() => mutate("name", value())}>mutate value</Button>
+			<Button onClick={() => mutate("name", value())}>mutate value from independent</Button>
 
-			<Button onClick={() => setParams?.({ x: value() })}>mutate filter</Button>
+			<Button onClick={() => setParams?.({ x: value() })}>mutate filter from independent</Button>
 
 			<div class="px-6 py-2 rounded-full flex items-center justify-center bg-indigo-400">{key()}</div>
 		</div>

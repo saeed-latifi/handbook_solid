@@ -19,14 +19,15 @@ export default function TestPage() {
 	return (
 		<div class="w-full flex flex-col gap-4 p-4">
 			{/* <ShowUser /> */}
-			{/* <ShowUser />
+			{/* <ShowUser /> */}
 			<ShowUser />
-			<MutateUser /> */}
+			<MutateUser />
 			<div class="flex w-full gap-4 overflow-hidden">
 				<CCInfinite />
 				<CCInfinite />
 				<CCInfinite />
 			</div>
+			{/* <CCInfinite /> */}
 			{/* <ShowList /> */}
 			{/* <MutateList /> */}
 			{/* <ComponentCash />

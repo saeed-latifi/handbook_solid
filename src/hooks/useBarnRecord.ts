@@ -1,5 +1,5 @@
 import { batch, createEffect, createMemo, createSignal } from "solid-js";
-import { createStore, SetStoreFunction, Store } from "solid-js/store";
+import { createStore, SetStoreFunction, Store, produce } from "solid-js/store";
 import { keyGenerator } from "~/utils/keyGenerator";
 
 export const utils = { keyGenerator };
@@ -64,7 +64,6 @@ export function useBarnRecord<T extends object, F extends Record<string, any> = 
 
 	const [isReadyState, setReady] = createSignal(isReady.constructor.name === "AsyncFunction" ? false : isReady());
 	const canAct = createMemo(() => isReadyState() && storeSection().dataState.initialized && !storeSection().dataState.isLoading && !storeSection().dataState.isValidating);
-	const canValidate = createMemo(() => isReadyState() && storeSection().dataState.initialized && !storeSection().dataState.isLoading);
 
 	createEffect(async () => {
 		try {
@@ -119,29 +118,25 @@ export function useBarnRecord<T extends object, F extends Record<string, any> = 
 	}
 
 	const mutate: SetStoreFunction<T> = ((...args: any[]) => {
-		if (!canValidate()) return;
+		if (!canAct()) return;
 		return (storeSection().setData as any)(...args);
 	}) as SetStoreFunction<T>;
 
-	async function asyncMutate(updater?: T | ((currentData?: T) => T | Promise<T | undefined> | undefined)) {
+	async function asyncMutate(updater: (mutator: SetStoreFunction<T>, data: T, filters: Partial<F>) => Promise<T | void> | T | void) {
 		if (!updater || !canAct()) return;
 
-		if (typeof updater === "function") {
-			storeSection().setDataState("isValidating", true);
-			const res = await updater(storeSection()?.data);
-			storeSection().setDataState("isValidating", false);
-			if (!res) return;
-
-			storeSection().setDataState(res);
-		} else storeSection().setDataState(updater);
+		storeSection().setDataState("isValidating", true);
+		await updater(storeSection().setData, storeSection().data, purgedFilters());
+		storeSection().setDataState("isValidating", false);
 	}
 
 	return {
 		key,
+		filters: purgedFilters,
 		data: () => storeSection().data,
 		dataState: () => storeSection().dataState,
 		isReady: isReadyState,
-		onValidate: (v: boolean) => storeSection().setDataState("isValidating", v),
+		// onValidate: (v: boolean) => storeSection().setDataState("isValidating", v),
 		mutate,
 		refetch: executeFetch,
 		canAct,

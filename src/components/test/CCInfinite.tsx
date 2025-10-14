@@ -7,21 +7,28 @@ import { ICourse } from "~/types/course.type";
 import { pageSize } from "~/appConfig";
 import { useBarnRecord } from "~/hooks/useBarnRecord";
 import { sleep } from "~/utils/sleep";
+import { useSearchParams } from "@solidjs/router";
 
 function useInfinite() {
-	const { key, data, mutate, dataState, isReady, canAct, refetch, onValidate, asyncMutate } = useBarnRecord({
+	const [params, setParams] = useSearchParams();
+
+	const { key, data, mutate, dataState, isReady, canAct, refetch, asyncMutate } = useBarnRecord({
 		domain: "courses",
-		isReady: () => true,
-		fetcher: async ({ id }) => {
+		isReady: async () => {
+			await sleep(1000);
+			return true;
+		},
+		fetcher: async () => {
 			const users: IResponse<ICourse[]> = await fetcher(0);
 			return users;
 		},
 		filters: () => ({
-			id: 1,
+			id: params.x?.toString() ?? "",
 		}),
 	});
 
 	function hasMore() {
+		// return false;
 		console.log("canAct", canAct());
 
 		if (!canAct()) return false;
@@ -30,15 +37,22 @@ function useInfinite() {
 	}
 
 	async function loadMore() {
-		const fff = data().data;
-		onValidate(true);
-		const userPage = await fetcher(fff?.length ?? 0);
-		if (userPage.data) mutate("data", (p) => [...(p ?? []), ...(userPage.data ?? [])]);
-		await sleep(100);
-		onValidate(false);
+		asyncMutate(async (mutator, prev) => {
+			const userPage = await fetcher(prev.data?.length ?? 0);
+			await sleep(1000);
+			mutator("data", (p) => [...(p ?? []), ...(userPage.data ?? [])]);
+		});
+
+		// =============================================
+		// const fff = data().data;
+		// onValidate(true);
+		// const userPage = await fetcher(fff?.length ?? 0);
+		// if (userPage.data) mutate("data", (p) => [...(p ?? []), ...(userPage.data ?? [])]);
+		// await sleep(100);
+		// onValidate(false);
 	}
 
-	return { key, data, mutate, dataState, isReady, hasMore, onValidate, loadMore };
+	return { key, data, mutate, dataState, isReady, hasMore, loadMore };
 }
 
 async function fetcher(skip: number) {
@@ -49,7 +63,7 @@ async function fetcher(skip: number) {
 }
 
 export function CCInfinite() {
-	const { data, hasMore, dataState, onValidate, mutate, loadMore, isReady } = useInfinite();
+	const { data, hasMore, dataState, mutate, loadMore, isReady } = useInfinite();
 
 	return (
 		<Switch>
