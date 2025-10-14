@@ -47,7 +47,7 @@ export function useBarnRecord<T extends object, F extends Record<string, any> = 
 		if (!BarnRecords[domain].records) BarnRecords[domain].records = {};
 		if (!BarnRecords[domain].records[currentKey]) {
 			BarnRecords[domain].records[currentKey] = {
-				data: createStore<T>([] as unknown as T),
+				data: createStore<T>({} as T),
 				dataState: createStore<IBarnDataState>({ initialized: false, isLoading: false, isValidating: false }),
 			};
 		}
@@ -64,6 +64,7 @@ export function useBarnRecord<T extends object, F extends Record<string, any> = 
 
 	const [isReadyState, setReady] = createSignal(isReady.constructor.name === "AsyncFunction" ? false : isReady());
 	const canAct = createMemo(() => isReadyState() && storeSection().dataState.initialized && !storeSection().dataState.isLoading && !storeSection().dataState.isValidating);
+	const canValidate = createMemo(() => isReadyState() && storeSection().dataState.initialized && !storeSection().dataState.isLoading);
 
 	createEffect(async () => {
 		try {
@@ -118,7 +119,7 @@ export function useBarnRecord<T extends object, F extends Record<string, any> = 
 	}
 
 	const mutate: SetStoreFunction<T> = ((...args: any[]) => {
-		if (!canAct()) return;
+		if (!canValidate()) return;
 		return (storeSection().setData as any)(...args);
 	}) as SetStoreFunction<T>;
 

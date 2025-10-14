@@ -22,7 +22,11 @@ export default function TestPage() {
 			{/* <ShowUser />
 			<ShowUser />
 			<MutateUser /> */}
-			<CCInfinite />
+			<div class="flex w-full gap-4 overflow-hidden">
+				<CCInfinite />
+				<CCInfinite />
+				<CCInfinite />
+			</div>
 			{/* <ShowList /> */}
 			{/* <MutateList /> */}
 			{/* <ComponentCash />

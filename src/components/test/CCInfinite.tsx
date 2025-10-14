@@ -13,7 +13,7 @@ function useInfinite() {
 		domain: "courses",
 		isReady: () => true,
 		fetcher: async ({ id }) => {
-			const users: ICourse[] = (await fetcher(0)).data ?? [];
+			const users: IResponse<ICourse[]> = await fetcher(0);
 			return users;
 		},
 		filters: () => ({
@@ -25,12 +25,20 @@ function useInfinite() {
 		console.log("canAct", canAct());
 
 		if (!canAct()) return false;
-		if (!data() || (data()?.length ?? 0) < 50) return true;
-		// if (!data() || (data()?.length ?? 0) < (data().length ?? 0)) return true;
+		if ((data().data?.length ?? 0) < (data().length ?? 0)) return true;
 		return false;
 	}
 
-	return { key, data, mutate, dataState, isReady, hasMore, onValidate };
+	async function loadMore() {
+		const fff = data().data;
+		onValidate(true);
+		const userPage = await fetcher(fff?.length ?? 0);
+		if (userPage.data) mutate("data", (p) => [...(p ?? []), ...(userPage.data ?? [])]);
+		await sleep(100);
+		onValidate(false);
+	}
+
+	return { key, data, mutate, dataState, isReady, hasMore, onValidate, loadMore };
 }
 
 async function fetcher(skip: number) {
@@ -41,23 +49,16 @@ async function fetcher(skip: number) {
 }
 
 export function CCInfinite() {
-	const { data, hasMore, dataState, onValidate, mutate } = useInfinite();
-
-	async function loadMore() {
-		const fff = data();
-		onValidate(true);
-		const userPage = await fetcher(fff?.length ?? 0);
-		// const asdasd = [...(data() ?? []), ...(userPage.data ?? [])];
-		// console.log(asdasd);
-		if (userPage.data) mutate((p) => [...fff, ...(userPage.data ?? [])]);
-		await sleep(2000);
-		onValidate(false);
-	}
+	const { data, hasMore, dataState, onValidate, mutate, loadMore, isReady } = useInfinite();
 
 	return (
 		<Switch>
+			<Match when={!isReady()}>
+				<div class="flex w-full h-full p-8 bg-fuchsia-200 rounded-xl">not ready ...</div>
+			</Match>
+
 			<Match when={dataState().isLoading}>
-				<div class="flex w-full h-full p-8 bg-fuchsia-200 rounded-xl">isLoading</div>
+				<div class="flex w-full h-full p-8 bg-fuchsia-200 rounded-xl">loading ...</div>
 			</Match>
 
 			<Match when={data()}>
@@ -74,7 +75,7 @@ export function CCInfinite() {
 						),
 					}}
 				>
-					<For each={data()}>
+					<For each={data().data}>
 						{(item) => (
 							<div class="bg-amber-200 rounded-full w-full flex items-center justify-center gap-2">
 								<span>{item.title}</span>
