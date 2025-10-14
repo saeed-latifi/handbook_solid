@@ -5,9 +5,10 @@ import { http } from "../http";
 import { IResponse } from "~/types/response.type";
 import { ICourse } from "~/types/course.type";
 import { pageSize } from "~/appConfig";
-import { useBarnRecord } from "~/hooks/useBarnRecord";
+// import { useBarnRecord } from "~/hooks/useBarnRecord";
 import { sleep } from "~/utils/sleep";
 import { useSearchParams } from "@solidjs/router";
+import { useBarnRecord } from "solid-barn";
 
 function useInfinite() {
 	const [params, setParams] = useSearchParams();
@@ -15,7 +16,7 @@ function useInfinite() {
 	const { key, data, mutate, dataState, isReady, canAct, refetch, asyncMutate } = useBarnRecord({
 		domain: "courses",
 		isReady: async () => {
-			await sleep(1000);
+			// await sleep(1000);
 			return true;
 		},
 		fetcher: async () => {
@@ -39,7 +40,7 @@ function useInfinite() {
 	async function loadMore() {
 		asyncMutate(async (mutator, prev) => {
 			const userPage = await fetcher(prev.data?.length ?? 0);
-			await sleep(1000);
+			// await sleep(1000);
 			mutator("data", (p) => [...(p ?? []), ...(userPage.data ?? [])]);
 		});
 

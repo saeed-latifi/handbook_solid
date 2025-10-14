@@ -3,18 +3,18 @@ import { sleep } from "~/utils/sleep";
 import { Button } from "../button/Button";
 import { Input } from "../form/Input";
 import { useSearchParams } from "@solidjs/router";
-import { useBarn } from "solid-barn";
-import { useBarnRecord } from "~/hooks/useBarnRecord";
+import { useBarnRecord } from "solid-barn";
+// import { useBarnRecord } from "~/hooks/useBarnRecord";
 
 function useUser({ id }: { id: () => string }) {
 	const { key, data, mutate, dataState, isReady } = useBarnRecord({
 		domain: "user",
 		isReady: async () => {
-			await sleep(700);
+			// await sleep(700);
 			return true;
 		},
 		fetcher: async ({ id }) => {
-			await sleep(3000);
+			// await sleep(3000);
 			return { id, name: "the user name" };
 		},
 		filters: () => ({ id: id() }),
