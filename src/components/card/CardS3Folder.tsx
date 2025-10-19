@@ -25,7 +25,7 @@ export function CardS3Folder({ item, bucketName, data, mutate }: props) {
 		navigate(`/storage/${bucketName}/${item.Prefix}`);
 	}
 
-	const { onClear, onModal } = useModal();
+	const { closeModal: onClear, showModal: onModal } = useModal();
 
 	function onCheckModal() {
 		onModal(

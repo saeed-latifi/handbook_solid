@@ -1,4 +1,4 @@
-import { JSXElement, onCleanup, onMount, createSignal } from "solid-js";
+import { JSXElement, onMount, createSignal } from "solid-js";
 
 type Props = {
 	onClear: () => void;
@@ -24,17 +24,8 @@ export default function ModalBase({ children, onClear, onOutClose = true, withAn
 		if (withAnimation) {
 			setBackgroundStyle(backOpen);
 			setWrapperStyle(wrapperOpen);
-			// document.body.style.overflow = "hidden";
-			// document.documentElement.style.overflowY = "hidden";
 		}
 	});
-
-	// onCleanup(() => {
-	// 	if (withAnimation) {
-	// 		document.body.style.overflow = "unset";
-	// 		document.documentElement.style.overflowY = "scroll";
-	// 	}
-	// });
 
 	const handleWrapperClick = () => {
 		if (onOutClose) {

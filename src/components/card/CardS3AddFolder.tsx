@@ -17,7 +17,7 @@ type props = {
 };
 
 export function CardS3AddFolder({ bucketName, data, mutate }: props) {
-	const { onClear, onModal } = useModal();
+	const { closeModal: onClear, showModal: onModal } = useModal();
 	const [folderName, setFolderName] = createSignal("");
 	const [validations, setValidations] = createSignal<{ folderName?: string[] }>({});
 

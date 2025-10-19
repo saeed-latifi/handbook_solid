@@ -12,7 +12,7 @@ export function CardBucket({ bucket }: { bucket: IBucket }) {
 	const { deleteBucket } = useBucketList();
 	const navigate = useNavigate();
 
-	const { onClear, onModal } = useModal();
+	const { closeModal: onClear, showModal: onModal } = useModal();
 
 	function onCheckModal() {
 		onModal(

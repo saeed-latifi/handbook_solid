@@ -7,7 +7,7 @@ import { IS3BucketInfo } from "~/types/S3";
 
 export function CardS3UploadFile({ bucketName, data }: { bucketName: string; data: IS3BucketInfo }) {
 	const parents = data?.Prefix.split("/").filter((item) => item !== "");
-	const { onClear, onModal } = useModal();
+	const { closeModal: onClear, showModal: onModal } = useModal();
 
 	function onClick() {
 		onModal(
