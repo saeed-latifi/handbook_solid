@@ -8,6 +8,7 @@ import { IconBack } from "../icons/IconBack";
 import { HlsPlayer } from "../HlsPlayer";
 // import { IconLock } from "../icons/IconLock";
 import { http } from "../http";
+import { IconDownload } from "../icons/IconDownload";
 
 type props = {
 	bucketName: string;
@@ -31,6 +32,21 @@ export function CardS3Item({ item, bucketName, data }: props) {
 		const { data } = await http.put("/storage/file/private", { bucketName, key: item.Key });
 
 		console.log(data);
+	}
+
+	async function onDownloadLink() {
+		const { data } = await http.post("/wow/presigned", { bucketName, key: item.Key }, { headers: { "x-token": "LUm8Kezys0IbCLvjXPRamcPVjFEbDdtJKLQw6sakHvTQKCmjUxZ097qqHUewfSWI" } });
+
+		const url = data.data.url;
+		console.log(url);
+		if (url) {
+			const link = document.createElement("a");
+			link.href = url;
+			link.download = item.Key; // Optional: specify filename
+			document.body.appendChild(link);
+			link.click();
+			document.body.removeChild(link);
+		}
 	}
 
 	return (
@@ -71,15 +87,20 @@ export function CardS3Item({ item, bucketName, data }: props) {
 			</div>
 			<p class="w-full bg-gray-200 px-2 py-0.5 font-peyda-bold text-sm truncate min-h-fit">{type === "back" ? "بازگشت" : type === "none" ? getLastWord(item.Key) : getLastWord(name)}</p>
 
-			{/* <button
-				class="flex items-center justify-center bg-white rounded-full border border-red-600 p-1 absolute top-2 left-2"
-				onClick={async (e) => {
-					e.stopPropagation();
-					onPrivateObject();
-				}}
-			>
-				<IconLock class="fill-red-600 w-5 h-5 min-w-5" />
-			</button> */}
+			{type === "back" ? (
+				""
+			) : (
+				<button
+					class="flex items-center justify-center bg-white rounded-full border border-green-600 p-1 absolute top-2 left-2"
+					onClick={async (e) => {
+						e.stopPropagation();
+						// onPrivateObject();
+						onDownloadLink();
+					}}
+				>
+					<IconDownload class="fill-green-600 w-5 h-5 min-w-5" />
+				</button>
+			)}
 		</div>
 	);
 }
