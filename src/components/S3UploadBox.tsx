@@ -5,6 +5,7 @@ import { IResponse } from "~/types/response.type";
 import toast from "solid-toast";
 import { IconAddFile } from "./icons/IconAddFile";
 import { Button } from "./button/Button";
+import IconClose from "./icons/IconClose";
 
 type FileStatus = "waiting" | "uploading" | "completed" | "error";
 
@@ -14,7 +15,7 @@ interface UploadItem {
 	status: FileStatus;
 }
 
-export default function S3UploadBox({ bucketName, parents }: { bucketName: string; parents?: string[] }) {
+export default function S3UploadBox({ bucketName, parents, onClose }: { bucketName: string; parents?: string[]; onClose: () => void }) {
 	const [items, setItems] = createStore<UploadItem[]>([]);
 
 	function handleFileChange(e: Event) {
@@ -63,6 +64,13 @@ export default function S3UploadBox({ bucketName, parents }: { bucketName: strin
 
 	return (
 		<div class="flex flex-col w-full gap-4">
+			<div class="border-b pb-2 flex items-center ">
+				<div class="flex-1" />
+				<button onClick={onClose} class="border rounded-lg p-1 border-red-500">
+					<IconClose class="fill-red-500 w-5 h-5" />
+				</button>
+			</div>
+
 			<label class="flex items-center justify-center gap-2 bg-base fill-white text-white py-1 px-3 rounded-lg overflow-hidden font-peyda-bold text-lg ">
 				<input hidden type="file" multiple onChange={handleFileChange} />
 				<p>chose files</p>

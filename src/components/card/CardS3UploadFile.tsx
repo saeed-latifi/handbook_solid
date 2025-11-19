@@ -11,9 +11,9 @@ export function CardS3UploadFile({ bucketName, data }: { bucketName: string; dat
 
 	function onClick() {
 		onModal(
-			<ModalBase onClear={onClear}>
+			<ModalBase onClear={onClear} onOutClose={false}>
 				<CardModal>
-					<S3UploadBox bucketName={bucketName} parents={parents} />
+					<S3UploadBox onClose={onClear} bucketName={bucketName} parents={parents} />
 				</CardModal>
 			</ModalBase>
 		);
