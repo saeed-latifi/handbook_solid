@@ -22,7 +22,7 @@ export function CardS3Folder({ item, bucketName, data, mutate }: props) {
 	const navigate = useNavigate();
 
 	function onClick() {
-		navigate(`/storage/${bucketName}/${item.Prefix}`);
+		navigate(`/${bucketName}/${item.Prefix}`);
 	}
 
 	const { closeModal: onClear, showModal: onModal } = useModal();

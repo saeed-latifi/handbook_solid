@@ -35,6 +35,8 @@ export function CardS3Item({ item, bucketName, data }: props) {
 	}
 
 	async function onDownloadLink() {
+		console.log({ bucketName, key: item.Key });
+
 		const { data } = await http.post("/wow/presigned", { bucketName, key: item.Key }, { headers: { "x-token": "LUm8Kezys0IbCLvjXPRamcPVjFEbDdtJKLQw6sakHvTQKCmjUxZ097qqHUewfSWI" } });
 
 		const url = data.data.url;

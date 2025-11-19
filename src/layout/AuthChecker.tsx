@@ -7,7 +7,6 @@ import { LoginPage } from "~/pages/login";
 import { ResponseState } from "~/types/response.type";
 import { Header } from "./Header";
 import { WidthFixer } from "./WidthFixer";
-import { Footer } from "./Footer";
 
 export function AuthChecker(props: { children: JSXElement }) {
 	useInterceptor();
@@ -26,7 +25,6 @@ export function AuthChecker(props: { children: JSXElement }) {
 				<>
 					<Header />
 					<WidthFixer>{props.children}</WidthFixer>
-					<Footer />
 				</>
 			</Match>
 

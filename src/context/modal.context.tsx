@@ -1,6 +1,5 @@
 import { useLocation } from "@solidjs/router";
 import { createContext, useContext, JSXElement, ParentComponent, createSignal, createEffect, Show, onMount } from "solid-js";
-import { Portal } from "solid-js/web";
 
 type ModalContextType = {
 	showModal: (modal: JSXElement) => void;

@@ -1,43 +1,42 @@
-import { createSignal, For, Show } from "solid-js";
-import { Button } from "~/components/button/Button";
 import { Input } from "~/components/form/Input";
-import { CCInfinite } from "~/components/test/CCInfinite";
-import { useDataList } from "~/hooks/useDataList";
+import { Button } from "~/components/button/Button";
+import { createSignal, For, Match, Switch } from "solid-js";
+import { CardBucket } from "~/components/card/CardBucket";
+import { useBucketList } from "~/hooks/useBucket";
 
-export default function Home() {
-	const [filter, setFilter] = createSignal("");
-	const [text, setTExt] = createSignal("");
+export default function BucketsList() {
+	const { data, isLoading, createBucket, response } = useBucketList();
 
-	const { data } = useDataList<{ gg: string }>({
-		domain: "some",
-		filters: () => ({ f: filter() ?? undefined }),
-		fetcher: async ({ f }) => {
-			// return [{ id: 1 + (id ?? "") }, { id: 2 + (id ?? "") }];
-			return { data: [{ gg: 1 + (f ?? "") }, { gg: 2 + (f ?? "") }], responseState: "Ok" };
-		},
-	});
+	const [bucketName, setBucketName] = createSignal("");
+
 	return (
 		<div class="w-full flex flex-col gap-4 p-4">
-			{/* <CCInfinite /> */}
-			<a href="/storage" class="w-full flex items-center justify-center text-white fill-white px-4 py-1 rounded-md bg-indigo-950">
-				storage
-			</a>
-			<a href="/course" class="w-full flex items-center justify-center text-white fill-white px-4 py-1 rounded-md bg-indigo-950">
-				list loader
-			</a>
+			<Input errors={(response()?.validations as any)?.name} value={bucketName()} oninput={(e) => setBucketName(e.target.value)} />
 
-			<Input value={text()} onInput={(e) => setTExt(e.target.value)} />
 			<Button
-				onClick={() => {
-					setFilter(text());
+				onClick={async () => {
+					const res = await createBucket(bucketName().trim());
+					if (res) setBucketName("");
 				}}
 			>
-				setFilter
+				onCreate
 			</Button>
 
-			<Show when={data()}>
-				<For each={data()}>{(item) => <div>{item.gg}</div>}</For>
-			</Show>
+			<Switch>
+				<Match when={isLoading()}>
+					<div class="flex w-full h-full p-8 bg-fuchsia-200 rounded-xl">isLoading</div>
+				</Match>
+				<Match when={response()?.messages?.notFound}>
+					<div class="flex w-full h-full p-8 bg-fuchsia-200 rounded-xl">
+						<For each={response()?.messages?.notFound} children={(i) => <div>{i}</div>} />
+					</div>
+				</Match>
+				<Match when={true}>
+					<div class="grid grid-cols-3 w-full gap-4">
+						<For each={data()}>{(item) => <CardBucket bucket={item} />}</For>
+					</div>
+				</Match>
+			</Switch>
 		</div>
 	);
 }
